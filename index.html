@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Drowned Chart</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <canvas id="fx"></canvas>
+  <div id="vignette"></div>
+  <svg style="display:none">
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.05" />
+      </feComponentTransfer>
+    </filter>
+  </svg>
+
+  <div id="game-container">
+
+    <!-- Left HUD -->
+    <div id="status-panel" class="panel tab-content">
+      <div class="s-sec">
+        <div class="s-head">Condition</div>
+        <div class="s-row"><span class="s-lbl">Health</span>
+          <div class="s-bar-bg">
+            <div class="s-bar-fg" id="v-hp"></div>
+          </div>
+        </div>
+        <div class="s-row"><span class="s-lbl">Sanity</span>
+          <div class="s-bar-bg">
+            <div class="s-bar-fg" id="v-san" style="background:#4a4d52"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="s-sec">
+        <div class="s-head">Logbook</div>
+        <div class="s-row"><span class="s-lbl">Day</span><span class="s-val" id="v-day">1</span></div>
+        <div class="s-row"><span class="s-lbl">Watch</span><span class="s-val" id="v-watch">Morning</span></div>
+        <div class="s-row" style="margin-top:8px"><span class="s-lbl">Loc</span><span class="s-val" id="v-loc">Open
+            Ocean</span></div>
+        <div class="s-row"><span class="s-lbl">Wind</span><span class="s-val" id="v-wind">N (12kt)</span></div>
+      </div>
+
+      <div class="s-sec">
+        <div class="s-head">Vessel</div>
+        <div class="s-row"><span class="s-lbl">Hull</span>
+          <div class="s-bar-bg">
+            <div class="s-bar-fg" id="v-hull"></div>
+          </div>
+        </div>
+        <div class="s-row"><span class="s-lbl">Bilge</span>
+          <div class="s-bar-bg">
+            <div class="s-bar-fg" id="v-bilge"></div>
+          </div>
+        </div>
+        <div class="s-row" style="margin-top:8px"><span class="s-lbl">State</span><span class="s-val"
+            id="v-state">Anchored</span></div>
+        <div class="s-row"><span class="s-lbl">Speed</span><span class="s-val" id="v-spd">0kt</span></div>
+        <div class="s-row"><span class="s-lbl">Weight</span><span class="s-val" id="v-wgt">0t</span></div>
+      </div>
+
+      <div class="s-sec">
+        <div class="s-head">Stores</div>
+        <div class="s-row"><span class="s-lbl">Food</span><span class="s-val" id="v-food">10</span></div>
+        <div class="s-row"><span class="s-lbl">Water</span><span class="s-val" id="v-water">10</span></div>
+        <div class="s-row"><span class="s-lbl">Timber</span><span class="s-val" id="v-timber">0</span></div>
+        <div class="s-row"><span class="s-lbl">Metal</span><span class="s-val" id="v-metal">0</span></div>
+        <div class="s-row"><span class="s-lbl">Rope</span><span class="s-val" id="v-rope">0</span></div>
+        <div class="s-row"><span class="s-lbl">Canvas</span><span class="s-val" id="v-canvas">0</span></div>
+      </div>
+    </div>
+
+    <!-- Center Log -->
+    <div id="story-panel" class="panel tab-content active-tab">
+      <div id="story"></div>
+      <div id="typing" class="hidden">. . .</div>
+    </div>
+
+    <!-- Right Choices -->
+    <div id="actions-panel" class="panel">
+      <div class="s-head mobile-only">Actions</div>
+      <div id="actions"></div>
+    </div>
+
+    <!-- Workshop Overlay -->
+    <div id="workshop-panel" class="overlay">
+      <div class="ws-header">
+        <div>Shipwright <span id="ws-mode-text"></span></div>
+        <button class="act-btn close-btn" onclick="closeWorkshop()">X</button>
+      </div>
+      <div class="ws-stats" id="ws-stats"></div>
+      <div id="grid-scroll">
+        <div id="ship-grid"></div>
+      </div>
+      <div id="build-menu"></div>
+    </div>
+
+    <!-- Chart Overlay -->
+    <div id="chart-panel" class="overlay">
+      <div class="ws-header">
+        <div>The Drowned Chart</div>
+        <button class="act-btn close-btn" onclick="closeChart()">X</button>
+      </div>
+      <div id="chart-container" style="flex:1; position:relative; overflow:hidden; background: #0a0b0d;">
+        <canvas id="chart-cv"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <nav id="mobile-nav">
+    <button class="nav-btn active" data-tab="story-panel">Log</button>
+    <button class="nav-btn" data-tab="status-panel">Helm</button>
+  </nav>
+
+  <div id="title-screen">
+    <h1>THE DROWNED CHART</h1>
+    <h2>A TEXT ADVENTURE OF ISOLATION</h2>
+    <button class="title-btn" id="btn-new">New Voyage</button>
+    <button class="title-btn" id="btn-cont" style="display:none">Continue</button>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+
+</html>
