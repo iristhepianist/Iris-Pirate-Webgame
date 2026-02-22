@@ -129,7 +129,7 @@ class ShipGrid {
         let st = {
             maxHull: 0, curHull: 0, wgt: 0, sailPwr: 0, maxWater: 0, maxFood: 0, pumpRate: 0,
             stayCount: 0, mastCount: 0, unsealed: 0, leakRate: 0,
-            leakBow: 0, leakMid: 0, leakStern: 0,
+            leakBow: 0, leakMid: 0, leakStern: 0, edgeMissing: 0,
             maxRain: 0,
             // Inventory storage capacities
             storageCapacity: {

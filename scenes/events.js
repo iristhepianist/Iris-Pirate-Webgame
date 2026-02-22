@@ -271,13 +271,37 @@ const eventScenes = {
         ]
     },
 
-    'night_reef': {
-        text: () => sceneContext() + 'You hear breakers before you see them. Rocks. Too late to spot them in the dark.',
+    'survival_manual': {
+        text: () => sceneContext() + 'You open the weathered manual, its pages yellowed and stained with salt spray. The handwriting is cramped but legible, penned by some long-ago castaway who survived the Pale Sea:\n\n' +
+            '"The stars will guide you, but only if you learn their secrets. Take sun sights at noon to mark your position, star fixes at night to correct your drift. A telescope or astrolabe will sharpen these measurements, revealing the true lay of the land.\n\n' +
+            'Your ship is your only home upon these merciless waters. Watch the bilge water rise - pump it out before it corrupts your stores. Repair damaged timbers before they give way to the deep. Balance your cargo carefully; too much weight will slow you, too little will leave you wanting.\n\n' +
+            'Food spoils in the heat and damp, water evaporates under the relentless sun. Fish when hove-to to catch fresh provisions that lift the crew\'s spirits. Islands offer salvation - timber for repairs, rope for rigging, canvas for sails, metal for tools.\n\n' +
+            'Some islands hide secrets beyond mere resources. Chart the constellations when the sky is clear, and they may reveal paths to places unseen. Ancient artifacts sometimes reward the bold explorer.\n\n' +
+            'Trust the stars. Fear the deep. The sea takes all who forget these lessons."',
         choices: () => [
-            { text: 'Throw the Helm Hard (1 Hour)', cb: async () => { G.ship.takeDamage(8, true); await printLog('The keel grinds, then slips free.', 'alert'); advanceTime(1); } },
-            { text: 'Heave To (2 Hours)', cb: () => { G.state = 'Hove-to'; advanceTime(2); } }
+            {
+                text: 'Continue Reading (About Storms)',
+                cb: () => setScene('survival_manual_storms')
+            },
+            {
+                text: 'Close the Manual',
+                cb: () => setScene('island_approach')
+            }
         ]
-    }
+    },
+
+    'survival_manual_storms': {
+        text: () => sceneContext() + 'The manual continues, the pages growing more frantic as if written during a gale:\n\n' +
+            '"When the sky darkens and the barometer falls, a storm approaches. Heave-to to weather it - strike your sails and let the sea pass beneath you. Reef early in gale winds to spare your masts. Monitor your hull; storms reveal weaknesses you never knew.\n\n' +
+            'Watch for the signs of doom: leaking timbers that won\'t seal, bilge water that rises despite your pumps, crew whose spirits break under endless strain. Sanity slips away in the endless dark, bringing visions that blur the line between sea and madness.\n\n' +
+            'The final page bears a star chart, constellations marked with strange symbols that seem to shift when you look away too long."',
+        choices: () => [
+            {
+                text: 'Close the Manual',
+                cb: () => setScene('island_approach')
+            }
+        ]
+    },
 };
 
 window.eventScenes = eventScenes;

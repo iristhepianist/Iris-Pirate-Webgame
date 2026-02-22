@@ -114,7 +114,6 @@ function ensureWorldState() {
     }
     if (!Array.isArray(G.rumors)) {
         G.rumors = [];
-        //log(DEBUG_LEVEL.DEBUG, 'Initialized rumors array');
         log(DEBUG_LEVEL.DEBUG, 'Initialized rumors array');
     }
 
@@ -1349,7 +1348,6 @@ function initWorld(seed) {
     G.seed = G.worldSeed;
     G.chunkCache = {};
     G.islandState = {};
-    G.scavengedIslands = {};
     if (!G.lootedIslands) G.lootedIslands = {};
     G.chartMarks = {};
     G.navError = 2;
