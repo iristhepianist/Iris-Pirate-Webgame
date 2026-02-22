@@ -712,6 +712,15 @@ function tryEncounter(isHourly) {
         return 'island_approach';
     }
 
+    // Check charted islands for approach
+    for (const isl of Object.values(G.discovered || {})) {
+        const d = Math.hypot(isl.x - G.x, isl.y - G.y);
+        if (d < WORLD.encounterRadius && !G.lootedIslands[isl.id]) {
+            G.curIsland = isl;
+            return 'island_approach';
+        }
+    }
+
     if (G.noEncounters) return null; // Block random events only AFTER island checks
 
     if (isNight && rr() < 0.05) return 'night_reef';
@@ -747,28 +756,51 @@ async function advanceTime(hours, skipSceneChange = false) {
 
         let st = G.ship.getStats();
 
-        // Food and water consumption, spoilage, and effects
-        // Consume 1 day of food and water per day
+        // Resource Consumption & Spoilage
         let consumedFood = { salt: 0, fresh: 0, citrus: 0 };
         let consumedWater = { fresh: 0, rain: 0, distilled: 0, exotic: 0 };
+        let foodNeeded = 1 / 24;
+        let waterNeeded = 1 / 24;
 
-        // Food consumption: prioritize citrus, then fresh, then salt
-        let foodNeeded = 1 / 24; // 1 day worth lasts 24 hours
+        // Consume from inventory system first, then fall back to legacy stocks
+        // Food consumption from pantry
+        for (let type of ['citrus', 'fresh', 'salt']) {
+            if (foodNeeded > 0 && G.inventory?.pantry?.[type]) {
+                let available = G.inventory.pantry[type];
+                let consume = Math.min(foodNeeded, available);
+                consumedFood[type] = consume;
+                G.inventory.pantry[type] -= consume;
+                if (G.inventory.pantry[type] <= 0) delete G.inventory.pantry[type];
+                foodNeeded -= consume;
+            }
+        }
+
+        // Water consumption from casks
+        for (let type of ['fresh', 'exotic', 'rain', 'distilled']) {
+            if (waterNeeded > 0 && G.inventory?.water_cask?.[type]) {
+                let available = G.inventory.water_cask[type];
+                let consume = Math.min(waterNeeded, available);
+                consumedWater[type] = consume;
+                G.inventory.water_cask[type] -= consume;
+                if (G.inventory.water_cask[type] <= 0) delete G.inventory.water_cask[type];
+                waterNeeded -= consume;
+            }
+        }
+
+        // Fall back to legacy stock systems if inventory doesn't have enough
         for (let type of ['citrus', 'fresh', 'salt']) {
             if (foodNeeded > 0 && G.foodStocks[type] > 0) {
                 let consume = Math.min(foodNeeded, G.foodStocks[type]);
-                consumedFood[type] = consume;
+                consumedFood[type] += consume;
                 G.foodStocks[type] -= consume;
                 foodNeeded -= consume;
             }
         }
 
-        // Water consumption: prioritize fresh, then exotic, then rain, then distilled
-        let waterNeeded = 1 / 24; // 1 day worth lasts 24 hours
         for (let type of ['fresh', 'exotic', 'rain', 'distilled']) {
             if (waterNeeded > 0 && G.waterStocks[type] > 0) {
                 let consume = Math.min(waterNeeded, G.waterStocks[type]);
-                consumedWater[type] = consume;
+                consumedWater[type] += consume;
                 G.waterStocks[type] -= consume;
                 waterNeeded -= consume;
             }
@@ -793,7 +825,41 @@ async function advanceTime(hours, skipSceneChange = false) {
             }
         }
 
-        // Food spoilage
+        // Food and water spoilage in inventory
+        if (G.inventory) {
+            // Pantry spoilage
+            if (G.inventory.pantry) {
+                for (const [itemId, quantity] of Object.entries(G.inventory.pantry)) {
+                    const itemType = ITEM_TYPES[itemId];
+                    if (itemType && itemType.spoilRate > 0) {
+                        const spoilAmount = itemType.spoilRate;
+                        const heat = G.wx === 'Calm' ? 1.2 : G.wx === 'Storm' ? 0.6 : 0.9;
+                        const bilgeSpoil = clamp(G.bilge / 100, 0, 1);
+                        const totalSpoilRate = spoilAmount * (1 + 0.1 * heat + 0.2 * bilgeSpoil);
+
+                        G.inventory.pantry[itemId] = Math.max(0, G.inventory.pantry[itemId] - totalSpoilRate);
+                        if (G.inventory.pantry[itemId] <= 0) {
+                            delete G.inventory.pantry[itemId];
+                        }
+                    }
+                }
+            }
+
+            // Water cask spoilage
+            if (G.inventory.water_cask) {
+                for (const [itemId, quantity] of Object.entries(G.inventory.water_cask)) {
+                    const itemType = ITEM_TYPES[itemId];
+                    if (itemType && itemType.spoilRate > 0) {
+                        G.inventory.water_cask[itemId] = Math.max(0, G.inventory.water_cask[itemId] - itemType.spoilRate);
+                        if (G.inventory.water_cask[itemId] <= 0) {
+                            delete G.inventory.water_cask[itemId];
+                        }
+                    }
+                }
+            }
+        }
+
+        // Legacy spoilage systems (for backward compatibility)
         for (let type in G.foodStocks) {
             let spoilAmount = FOOD_TYPES[type].spoilRate;
             // Increase spoilage in heat or bilge
@@ -856,6 +922,24 @@ async function advanceTime(hours, skipSceneChange = false) {
             printLog('The calm is a lid on the world. The silence is heavy. Water feels heavier.', 'alert');
             G.morale = clamp(G.morale - 2, 0, 100);
         }
+
+        // Rainwater Collection (passive, during storms)
+        if (G.wx === 'Storm') {
+            let rainCollectorCount = 0;
+            // Count rain collectors on the ship
+            for (let i = 0; i < G.ship.cells.length; i++) {
+                let cell = G.ship.cells[i];
+                if (cell && BLOCKS[cell.type] && BLOCKS[cell.type].func === 'rain') {
+                    rainCollectorCount++;
+                }
+            }
+
+            // Each collector gathers a small amount of rainwater per hour during storms
+            if (rainCollectorCount > 0) {
+                const rainCollected = rainCollectorCount * 0.02; // 0.02 days worth per collector per hour
+                G.waterStocks.rain = Math.min(G.ship.getStats().maxRain || 999, G.waterStocks.rain + rainCollected);
+            }
+        }
         const isNight = (G.hour >= 20 || G.hour <= 3);
         if (isNight && rr() < 0.05) {
             printLog('Strange lights flicker at the edge of sight. You blink and they are gone.', 'alert');
@@ -867,6 +951,25 @@ async function advanceTime(hours, skipSceneChange = false) {
 
         G.san = clamp(G.san, 0, 100);
         G.hp = clamp(G.hp, 0, 100);
+
+        // Sanity hallucinations
+        if (G.san < 30 && rr() < 0.1) {
+            printLog('Shadows move in your peripheral vision. Are you truly alone?', 'alert');
+        }
+        if (G.san < 20 && rr() < 0.05) {
+            printLog('You hear faint whispers from the deep. They know your name.', 'alert');
+        }
+
+        // Debilitating effects for low sanity
+        if (G.san < 20) {
+            G.spd *= 0.85; // Reduced speed
+            // Increased encounter chance (will be handled in tryEncounter)
+        }
+
+        // Cursed artifacts drain sanity over time
+        if (G.artifacts && Object.keys(G.artifacts).length > 0) {
+            G.san = clamp(G.san - 1, 0, 100);
+        }
 
         playBell();
 
@@ -883,6 +986,18 @@ async function advanceTime(hours, skipSceneChange = false) {
         let leakRate = st.leakRate;
         if (G.wx === 'Storm') leakRate *= 2;
         if (G.state === 'Hove-to') leakRate *= 0.8;
+
+        // Weight affects ship performance
+        const inventoryWeight = calculateTotalInventoryWeight();
+        const weightRatio = inventoryWeight / (st.wgt + inventoryWeight); // Ratio of cargo to total weight
+
+        // Heavy cargo reduces speed and increases list
+        if (weightRatio > 0.3) { // More than 30% cargo weight
+            const penalty = Math.min(0.5, (weightRatio - 0.3) * 2); // Up to 50% speed reduction
+            G.spd *= (1 - penalty);
+            st.list = (st.list || 0) + (penalty * 10); // Increased listing
+        }
+
         if (st.leakBow > st.leakMid) G.spd *= 0.95;
         if (st.leakStern > st.leakMid) G.spd *= 0.92;
 
@@ -1002,6 +1117,231 @@ async function advanceTime(hours, skipSceneChange = false) {
     }
 
     return encounter;
+}
+
+// Astrology System Functions
+function getVisibleConstellations() {
+    const visible = [];
+    const currentSeason = getCurrentSeason();
+
+    // Different constellations are visible in different seasons
+    const seasonalConstellations = {
+        'winter': ['orion', 'canis_major', 'taurus'],
+        'spring': ['ursa_major', 'bootes', 'virgo'],
+        'summer': ['cygnus', 'aquila', 'lyra'],
+        'fall': ['andromeda', 'cassiopeia', 'pegasus']
+    };
+
+    const available = seasonalConstellations[currentSeason] || [];
+    available.forEach(id => {
+        if (CONSTELLATIONS[id]) {
+            visible.push({
+                id: id,
+                name: CONSTELLATIONS[id].name,
+                description: CONSTELLATIONS[id].description
+            });
+        }
+    });
+
+    // Add some random constellations that are always potentially visible
+    const alwaysVisible = ['ursa_major', 'cassiopeia', 'pleiades'];
+    alwaysVisible.forEach(id => {
+        if (CONSTELLATIONS[id] && !visible.find(c => c.id === id) && rr() < 0.7) {
+            visible.push({
+                id: id,
+                name: CONSTELLATIONS[id].name,
+                description: CONSTELLATIONS[id].description
+            });
+        }
+    });
+
+    return visible;
+}
+
+function getCurrentSeason() {
+    // Simplified season calculation based on day of year
+    const dayOfYear = (G.day || 1) % 365;
+    if (dayOfYear < 91) return 'winter';
+    if (dayOfYear < 182) return 'spring';
+    if (dayOfYear < 273) return 'summer';
+    return 'fall';
+}
+
+async function chartConstellation(constellationId) {
+    if (!CONSTELLATIONS[constellationId]) {
+        await printLog('That constellation is not recognized in your charts.', 'sys');
+        return;
+    }
+
+    const constellation = CONSTELLATIONS[constellationId];
+
+    // Initialize charted constellations if needed
+    if (!G.chartedConstellations) {
+        G.chartedConstellations = {};
+    }
+
+    // Check if already charted
+    if (G.chartedConstellations[constellationId]) {
+        await printLog(`You have already charted ${constellation.name}.`, 'sys');
+        return;
+    }
+
+    // Chart the constellation
+    G.chartedConstellations[constellationId] = {
+        chartedAt: G.day,
+        name: constellation.name,
+        effect: constellation.effect
+    };
+
+    await printLog(`You carefully chart the stars of ${constellation.name}. The patterns reveal themselves to your understanding.`, 'normal');
+
+    // Apply constellation effects
+    await applyConstellationEffect(constellationId);
+}
+
+async function applyConstellationEffect(constellationId) {
+    const constellation = CONSTELLATIONS[constellationId];
+    const effect = constellation.effect;
+
+    switch (effect) {
+        case 'navigation_bonus':
+            G.navError = Math.max(0.5, G.navError * 0.8); // Reduce navigation error
+            await printLog(`${constellation.name} guides your navigation. Position accuracy improved!`, 'sys');
+            break;
+
+        case 'island_reveal':
+            await revealHiddenIslands(constellation.islands);
+            break;
+
+        case 'treasure_hint':
+            await printLog(`The stars hint at buried treasure. Your next island discovery may be more rewarding.`, 'sys');
+            G.treasureHint = true;
+            break;
+
+        case 'multiple_reveal':
+            await revealHiddenIslands(constellation.islands.slice(0, 3)); // Reveal up to 3 islands
+            break;
+
+        case 'supernatural_event':
+            await triggerSupernaturalEvent(constellationId);
+            break;
+
+        default:
+            await printLog(`The stars of ${constellation.name} whisper ancient secrets.`, 'normal');
+    }
+}
+
+async function revealHiddenIslands(islandIds) {
+    let revealedCount = 0;
+
+    islandIds.forEach(islandId => {
+        // Create or reveal hidden islands
+        const islandData = generateHiddenIsland(islandId);
+        if (islandData && !G.discovered[islandData.id]) {
+            G.discovered[islandData.id] = islandData;
+            revealedCount++;
+        }
+    });
+
+    if (revealedCount > 0) {
+        await printLog(`The stars reveal ${revealedCount} hidden islands on your chart!`, 'sys');
+    }
+}
+
+function generateHiddenIsland(islandId) {
+    // Generate coordinates for hidden islands based on constellation
+    const seed = hash3i(islandId.length, G.worldSeed || 1, islandId.charCodeAt(0));
+    const distance = 50 + (seed % 150); // 50-200 units away
+    const angle = (seed / 4294967296) * Math.PI * 2; // Random angle
+
+    return {
+        id: islandId,
+        name: islandId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        pale: rr() < 0.2, // 20% chance of being pale
+        hidden: false, // Now revealed
+        scavenged: false
+    };
+}
+
+async function triggerSupernaturalEvent(constellationId) {
+    const constellation = CONSTELLATIONS[constellationId];
+
+    await printLog(`As you chart ${constellation.name}, the stars seem to pulse with otherworldly energy...`, 'normal');
+
+    // Random supernatural events
+    const events = [
+        {
+            text: 'Ghostly figures appear on the deck, pointing towards a distant horizon.',
+            effect: () => {
+                G.navError = Math.max(0.1, G.navError * 0.5); // Major navigation improvement
+                printLog('The ghosts guide your course with supernatural precision!', 'alert');
+            }
+        },
+        {
+            text: 'The sea glows with an ethereal light, revealing hidden currents.',
+            effect: () => {
+                G.spd *= 1.5; // Speed boost for next voyage
+                printLog('Favorable currents carry you swiftly!', 'sys');
+            }
+        },
+        {
+            text: 'Ancient runes appear in the starlight, granting mystical insight.',
+            effect: () => {
+                G.san = Math.min(100, G.san + 20); // Sanity boost
+                printLog('The ancient knowledge steadies your mind.', 'sys');
+            }
+        }
+    ];
+
+    const event = events[Math.floor(rr() * events.length)];
+    await printLog(event.text, 'alert');
+    event.effect();
+}
+
+// Weather Prediction System
+function getCelestialWeatherPrediction() {
+    // Astrology-based weather prediction
+    if (!G.ship || !G.ship.cells) return null;
+
+    let hasAstrology = false;
+    G.ship.cells.forEach(cell => {
+        if (cell && BLOCKS[cell.type] && BLOCKS[cell.type].func === 'celestial') {
+            hasAstrology = true;
+        }
+    });
+
+    if (!hasAstrology) return null;
+
+    // Generate prediction based on current constellations and season
+    const currentSeason = getCurrentSeason();
+    const visibleConstellations = getVisibleConstellations();
+
+    // Simplified weather prediction logic
+    const predictions = {
+        'winter': { storm: 0.3, calm: 0.4, clear: 0.3 },
+        'spring': { storm: 0.2, calm: 0.3, clear: 0.5 },
+        'summer': { storm: 0.4, calm: 0.2, clear: 0.4 },
+        'fall': { storm: 0.3, calm: 0.3, clear: 0.4 }
+    };
+
+    const seasonPredictions = predictions[currentSeason];
+
+    // Modify predictions based on charted constellations
+    if (G.chartedConstellations) {
+        if (G.chartedConstellations['orion']) seasonPredictions.storm *= 0.7; // Hunter brings storms
+        if (G.chartedConstellations['pleiades']) seasonPredictions.calm *= 1.3; // Sisters bring calm
+        if (G.chartedConstellations['andromeda']) seasonPredictions.storm *= 1.2; // Chained maiden brings chaos
+    }
+
+    // Normalize probabilities
+    const total = seasonPredictions.storm + seasonPredictions.calm + seasonPredictions.clear;
+    Object.keys(seasonPredictions).forEach(key => {
+        seasonPredictions[key] /= total;
+    });
+
+    return seasonPredictions;
 }
 
 function initWorld(seed) {

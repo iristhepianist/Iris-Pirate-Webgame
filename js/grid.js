@@ -127,9 +127,21 @@ class ShipGrid {
         shipLog(SHIP_DEBUG_LEVEL.DEBUG, 'Calculating ship statistics');
 
         let st = {
-            maxHull: 0, curHull: 0, wgt: 0, sailPwr: 0, maxWater: 10, maxFood: 10,
-            pumpRate: 0, edgeMissing: 0, leakBow: 0, leakMid: 0, leakStern: 0,
-            list: 0, stayCount: 0, mastCount: 0, unsealed: 0
+            maxHull: 0, curHull: 0, wgt: 0, sailPwr: 0, maxWater: 0, maxFood: 0, pumpRate: 0,
+            stayCount: 0, mastCount: 0, unsealed: 0, leakRate: 0,
+            leakBow: 0, leakMid: 0, leakStern: 0,
+            maxRain: 0,
+            // Inventory storage capacities
+            storageCapacity: {
+                hold: 100,           // Base hold capacity
+                pantry: 0,           // Food storage from pantry blocks
+                water_cask: 0,       // Water storage from cask blocks
+                equipment_locker: 10, // Base equipment storage
+                artifact_case: 5     // Base artifact storage
+            },
+            // Inventory weight tracking
+            inventoryWeight: 0,
+            inventoryVolume: 0
         };
         let expectedEdges = 0;
         let actualEdges = 0;
@@ -151,8 +163,15 @@ class ShipGrid {
                     sumX += x * b.wgt;
                     sumW += b.wgt;
                     if (b.func === 'sail') st.sailPwr += b.pwr;
-                    if (b.func === 'water') st.maxWater += b.cap;
-                    if (b.func === 'food') st.maxFood += b.cap;
+                    if (b.func === 'water') {
+                        st.maxWater += b.cap;
+                        st.storageCapacity.water_cask += b.cap; // Add to water storage capacity
+                    }
+                    if (b.func === 'food') {
+                        st.maxFood += b.cap;
+                        st.storageCapacity.pantry += b.cap; // Add to food storage capacity
+                    }
+                    if (b.func === 'rain') st.maxRain += b.cap;
                     if (b.func === 'pump') st.pumpRate += b.clear;
                     if (b.func === 'stay') st.stayCount++;
                     if (b.func === 'sail') st.mastCount++;

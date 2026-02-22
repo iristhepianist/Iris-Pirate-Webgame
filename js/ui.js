@@ -33,8 +33,46 @@ function uiLog(level, message, data = null) {
     }
 }
 
+function corruptText(text) {
+    const words = text.split(' ');
+    const corrupted = words.map(word => {
+        if (rr() < 0.5) { // Increased chance: 50% per word
+            const r = rr();
+            if (r < 0.25) {
+                // Swap letters more aggressively
+                const chars = word.split('');
+                for (let i = 0; i < Math.floor(rr() * 3) + 1; i++) {
+                    if (chars.length > 1) {
+                        const a = Math.floor(rr() * chars.length);
+                        const b = Math.floor(rr() * chars.length);
+                        [chars[a], chars[b]] = [chars[b], chars[a]];
+                    }
+                }
+                return chars.join('');
+            } else if (r < 0.5) {
+                // Redact more
+                const len = word.length;
+                const redactLen = Math.floor(rr() * len) + 1;
+                const start = Math.floor(rr() * (len - redactLen + 1));
+                return word.substring(0, start) + '[REDACTED]' + word.substring(start + redactLen);
+            } else if (r < 0.75) {
+                // Glitch characters more
+                return word.replace(/[a-z]/gi, c => rr() < 0.7 ? String.fromCharCode(c.charCodeAt(0) + (rr() < 0.5 ? 1 : -1)) : c);
+            } else {
+                // Syntax break: remove word or duplicate
+                return rr() < 0.5 ? '' : word + ' ' + word;
+            }
+        }
+        return word;
+    }).filter(w => w); // Remove empty
+    // Sometimes scramble sentence
+    if (rr() < 0.2) {
+        return corrupted.sort(() => rr() - 0.5).join(' ');
+    }
+    return corrupted.join(' ');
+}
+
 function disableUI() {
-    isTyping = true;
     document.querySelectorAll('#actions .act-btn').forEach(b => b.disabled = true);
     document.querySelectorAll('.nav-btn').forEach(b => b.disabled = true);
 }
@@ -50,6 +88,19 @@ function enableUI() {
 
 async function printLog(text, type = 'normal') {
     console.log(`[TUTORIAL] ${text.replace(/<[^>]*>/g, '')}`); // Log plain text to console for visibility
+
+    // Corrupt text for low sanity
+    if ((G.san ?? 100) < 20 && type !== 'sys') {
+        text = corruptText(text);
+        // Add longer pause for creepiness
+        await wait(500);
+    }
+
+    // Sometimes add direct address or paranoia
+    if ((G.san ?? 100) < 30 && rr() < 0.15 && type === 'normal') {
+        text += '\n\n<i>You feel watched. Is someone following your every move?</i>';
+    }
+
     const s = el('story');
     const ps = s.querySelectorAll('.para');
     if (ps.length > 25) ps[0].remove(); // prune
@@ -243,6 +294,168 @@ function updateUI() {
     setBar('v-bilge', G.bilge, 100);
     setBar('v-hp', G.hp, 100);
     setBar('v-san', G.san, 100);
+
+    // Horror effects for low sanity
+    if ((G.san ?? 100) < 20) {
+        console.log('Horror condition met, sanity:', G.san);
+        if (!document.getElementById('horror-overlay')) {
+            console.log('Adding horror overlay');
+            const overlay = document.createElement('div');
+            overlay.id = 'horror-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(139, 0, 0, 0.5)'; // Dark red tint, increased opacity
+            overlay.style.pointerEvents = 'none';
+            overlay.style.zIndex = '100000';
+            document.body.appendChild(overlay);
+
+            // Play scream on activation
+            if (typeof playScream === 'function') playScream();
+
+            // Periodic overwhelming audio
+            const playOverwhelmingAudio = () => {
+                if ((G.san ?? 100) >= 20) return;
+                if (rr() < 0.5) {
+                    if (typeof playWhisper === 'function') playWhisper();
+                } else {
+                    if (typeof playScream === 'function') playScream();
+                }
+            };
+            // Every 3-5 seconds
+            setInterval(playOverwhelmingAudio, Math.random() * 2000 + 3000);
+        } else {
+            console.log('Horror overlay already exists');
+        }
+
+        if (!document.getElementById('horror-text')) {
+            console.log('Adding horror text');
+            const text = document.createElement('div');
+            text.id = 'horror-text';
+            text.innerText = 'MADNESS CLAWS AT YOUR MIND';
+            text.style.position = 'fixed';
+            text.style.top = '50%';
+            text.style.left = '50%';
+            text.style.transform = 'translate(-50%, -50%)';
+            text.style.color = '#8B0000';
+            text.style.fontSize = '2em';
+            text.style.fontWeight = 'bold';
+            text.style.textShadow = '2px 2px #000';
+            text.style.zIndex = '10000';
+            text.style.pointerEvents = 'none';
+            text.style.opacity = '1';
+            document.body.appendChild(text);
+
+            // Flashing effect
+            let flash = true;
+            setInterval(() => {
+                text.style.opacity = flash ? '0' : '1';
+                flash = !flash;
+            }, 600);
+
+            // Random hallucinations - intensity scales with sanity loss
+            const intensity = Math.max(0, (50 - (G.san ?? 100)) / 50); // 0 at sanity 50+, 1 at sanity 0
+            const hallucinations = [
+                "The dead watch from the waves...",
+                "Whispers echo your forgotten sins...",
+                "Pale shadows creep aboard...",
+                "The sea hungers for your soul...",
+                "Ghostly hands clutch the rigging...",
+                "A drowned face grins from the deep...",
+                "The wind carries screams of the lost...",
+                "Blood stains the deck where none spilled...",
+                "You are not alone. Never alone.",
+                "The hull breathes. In... out...",
+                "Something watches from the hold...",
+                "The water speaks. Listen...",
+                "Shadows lengthen. They reach...",
+                "The pale ones remember you...",
+                "Voices beneath the waves...",
+                "The sea claims what it wants...",
+                "AAAAAAAAAHHHHHHHH!",
+                "HELP ME! PLEASE!",
+                "NOOOO! THE DARKNESS!",
+                "THEY'RE COMING FOR ME!",
+                "I CAN'T TAKE IT ANYMORE!",
+                "MAKE IT STOP! MAKE IT STOP!"
+            ];
+
+            const createHallucination = () => {
+                if ((G.san ?? 100) >= 50) return; // No hallucinations until sanity <50
+                // Spawn count scales with intensity
+                const baseCount = 3;
+                const maxCount = 8;
+                const count = Math.floor(rr() * 3) + baseCount + Math.floor(intensity * (maxCount - baseCount));
+                for (let i = 0; i < count; i++) {
+                    const hallu = document.createElement('div');
+                    let text = hallucinations[Math.floor(Math.random() * hallucinations.length)];
+                    text = corruptText(text);
+                    hallu.innerText = text;
+                    hallu.style.position = 'fixed';
+                    hallu.style.top = Math.random() * 80 + '%';
+                    hallu.style.left = Math.random() * 80 + '%';
+                    // Color intensity scales
+                    const redIntensity = 0.7 + intensity * 0.3;
+                    hallu.style.color = `rgb(${Math.floor(redIntensity * 255)}, ${Math.floor((1 - redIntensity) * 100)}, ${Math.floor((1 - redIntensity) * 100)})`;
+                    // Size scales with intensity
+                    const baseSize = 1.5;
+                    const maxSize = 3.0;
+                    const fontSize = baseSize + intensity * (maxSize - baseSize);
+                    hallu.style.fontSize = `${fontSize}em`;
+                    hallu.style.fontFamily = ''; // Remove creepy font
+                    hallu.style.fontWeight = 'bold';
+                    hallu.style.textShadow = '1px 1px 2px #000'; // Subtle black shadow
+                    hallu.style.zIndex = '100001';
+                    hallu.style.pointerEvents = 'none';
+                    hallu.style.opacity = '1'; // Fully opaque
+                    // More creepy distortions scale with intensity
+                    if (rr() < 0.5 + intensity * 0.3) hallu.style.fontStyle = 'italic';
+                    const scale = 1.2 + rr() * 0.8 * intensity;
+                    if (rr() < 0.4 + intensity * 0.4) hallu.style.transform = `scale(${scale}) rotate(${rr() * 20 - 10}deg)`;
+                    if (rr() < 0.3 + intensity * 0.4) hallu.style.textDecoration = 'underline';
+                    document.body.appendChild(hallu);
+
+                    // Fade out duration scales with intensity
+                    const fadeTime = 5000 - intensity * 3000; // 5s at low, 2s at extreme
+                    setTimeout(() => {
+                        let opacity = 1;
+                        const fadeOut = setInterval(() => {
+                            opacity -= 0.02;
+                            hallu.style.opacity = opacity;
+                            if (opacity <= 0) {
+                                clearInterval(fadeOut);
+                                hallu.remove();
+                            }
+                        }, 50);
+                    }, fadeTime);
+                }
+            };
+
+            // Frequency scales with intensity
+            const baseFreq = 2000; // 2 seconds at low intensity
+            const minFreq = 300; // 0.3 seconds at max intensity
+            const freq = baseFreq - intensity * (baseFreq - minFreq);
+            setInterval(createHallucination, Math.random() * freq + freq / 2);
+        } else {
+            console.log('Horror text already exists');
+        }
+    } else {
+        console.log('Horror condition not met, sanity:', G.san);
+        const overlay = document.getElementById('horror-overlay');
+        if (overlay) {
+            console.log('Removing horror overlay');
+            overlay.remove();
+        }
+
+        const text = document.getElementById('horror-text');
+        if (text) {
+            console.log('Removing horror text');
+            text.remove();
+        }
+    }
+
     setBar('v-scurvy', G.scurvy, 100);
 
     const blg = el('v-bilge');
@@ -784,6 +997,49 @@ help - Show this help`;
                     }
                 } else {
                     result = 'Usage: list scenes';
+                }
+                break;
+
+            case 'dungeon':
+                if (args[0]) {
+                    const dungeonType = args[0];
+                    // Check if dungeon type exists in DUNGEON_TYPES
+                    if (typeof DUNGEON_TYPES !== 'undefined' && DUNGEON_TYPES[dungeonType]) {
+                        G.currentDungeon = dungeonType;
+                        // Import setScene if needed, or use Scenes.island_dungeon
+                        if (typeof setScene === 'function') {
+                            setScene('island_dungeon');
+                            result = `Testing dungeon: ${dungeonType}`;
+                        } else {
+                            result = 'setScene function not available';
+                        }
+                    } else {
+                        // List available dungeon types
+                        if (typeof DUNGEON_TYPES !== 'undefined') {
+                            const dungeonList = Object.keys(DUNGEON_TYPES).join(', ');
+                            result = `Unknown dungeon type: ${dungeonType}. Available: ${dungeonList}`;
+                        } else {
+                            result = 'DUNGEON_TYPES not available';
+                        }
+                    }
+                } else {
+                    result = 'Usage: dungeon [type]';
+                }
+                break;
+
+            case 'sanity':
+                if (args[0]) {
+                    const amount = parseInt(args[0]);
+                    if (!isNaN(amount) && amount > 0) {
+                        const oldSanity = G.san;
+                        G.san = clamp(G.san - amount, 0, 100);
+                        updateUI();
+                        result = `Reduced sanity by ${amount}: ${oldSanity} -> ${G.san}`;
+                    } else {
+                        result = 'Amount must be a positive number';
+                    }
+                } else {
+                    result = 'Usage: sanity [amount]';
                 }
                 break;
 

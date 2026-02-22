@@ -1,6 +1,5 @@
 // tests/setup.js
-'use strict';
-
+my
 const fs = require('fs');
 const path = require('path');
 

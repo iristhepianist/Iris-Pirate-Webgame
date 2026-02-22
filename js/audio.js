@@ -166,7 +166,14 @@ function initAudio() {
         highDrone.start();
         highLfo.start();
 
-        audioLog(AUDIO_DEBUG_LEVEL.INFO, 'Ambient audio environment initialized');
+        // Low frequency drone for sanity horror
+        AM.infraDrone = actx.createOscillator();
+        AM.infraDrone.type = 'sine';
+        AM.infraDrone.frequency.value = 17; // Infrasound range
+        AM.infraGain = actx.createGain();
+        AM.infraGain.gain.value = 0;
+        AM.infraDrone.connect(AM.infraGain).connect(AM.masterGain);
+        AM.infraDrone.start();
     } catch (error) {
         audioLog(AUDIO_DEBUG_LEVEL.ERROR, 'Failed to initialize audio system', error);
     }
@@ -178,7 +185,7 @@ function checkAudio() {
 
 function updateAudioEnv() {
     if (!actx) return;
-    let tSea = 0.2, tRain = 0;
+    let tSea = 0.2, tRain = 0, tInfra = 0;
 
     if (G.wx === 'Storm') { tSea = 0.6; tRain = 0.4; }
     else if (G.wx === 'Gale') { tSea = 0.4; tRain = 0.1; }
@@ -186,11 +193,15 @@ function updateAudioEnv() {
     if (typeof G.beaufort === 'number') tSea = Math.max(tSea, Math.min(0.7, G.beaufort * 0.06));
     if (G.state === 'Anchored') tSea *= 0.7;
 
+    // Infrasound for low sanity
+    if ((G.san ?? 100) < 20) tInfra = 0.3;
+
     const rmp = (node, tval) => {
         if (node) node.gain.linearRampToValueAtTime(tval, actx.currentTime + 3);
     };
     rmp(AM.oceanGain, tSea * 2.0);
     rmp(AM.rainGain, tRain * 2.0);
+    rmp(AM.infraGain, tInfra);
 }
 
 function playCreak() {
@@ -322,39 +333,97 @@ function playGust() {
     noise.stop(t + 3);
 }
 
-function playGroan() {
+function playMadness() {
     if (!actx) {
-        audioLog(AUDIO_DEBUG_LEVEL.WARN, 'Cannot play groan - audio not initialized');
+        audioLog(AUDIO_DEBUG_LEVEL.WARN, 'Cannot play madness - audio not initialized');
         return;
     }
 
-    audioLog(AUDIO_DEBUG_LEVEL.DEBUG, 'Playing groan sound');
+    audioLog(AUDIO_DEBUG_LEVEL.DEBUG, 'Playing madness sound');
 
     const t = actx.currentTime;
-    const dur = 1 + Math.random();
-
     const osc = actx.createOscillator();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(40 + Math.random() * 20, t);
+    const gain = actx.createGain();
 
-    const lfo = actx.createOscillator();
-    lfo.frequency.value = 5 + Math.random() * 10;
-    const lfoGain = actx.createGain();
-    lfoGain.gain.value = 10;
-    lfo.connect(lfoGain).connect(osc.frequency);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(300, t);
+    osc.frequency.exponentialRampToValueAtTime(80, t + 1);
+
+    gain.gain.setValueAtTime(0.4, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 1);
+
+    osc.connect(gain).connect(AM.masterGain || actx.destination);
+    osc.start(t);
+    osc.stop(t + 1);
+}
+
+function playWhisper() {
+    if (!actx || !makeNoiseSource) {
+        audioLog(AUDIO_DEBUG_LEVEL.WARN, 'Cannot play whisper - audio not initialized');
+        return;
+    }
+
+    audioLog(AUDIO_DEBUG_LEVEL.DEBUG, 'Playing whisper sound');
+
+    const t = actx.currentTime;
+    const noise = makeNoiseSource(true);
+    const filt = actx.createBiquadFilter();
+    const gain = actx.createGain();
+
+    filt.type = 'bandpass';
+    filt.frequency.setValueAtTime(2000, t);
+    filt.frequency.exponentialRampToValueAtTime(3000, t + 0.5);
+
+    gain.gain.setValueAtTime(0.1, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+
+    noise.connect(filt).connect(gain).connect(AM.masterGain || actx.destination);
+    noise.start(t);
+    noise.stop(t + 0.8);
+}
+
+function playScream() {
+    if (!actx) {
+        audioLog(AUDIO_DEBUG_LEVEL.WARN, 'Cannot play scream - audio not initialized');
+        return;
+    }
+
+    audioLog(AUDIO_DEBUG_LEVEL.DEBUG, 'Playing scream sound');
+
+    const t = actx.currentTime;
+    const dur = 1.5; // Longer duration
+
+    // Multiple oscillators for harsh, shrill sound
+    const osc1 = actx.createOscillator();
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(2000, t); // Higher start
+    osc1.frequency.setValueAtTime(2000, t + dur); // Constant pitch, no ramp
+
+    const osc2 = actx.createOscillator();
+    osc2.type = 'square';
+    osc2.frequency.setValueAtTime(3000, t); // Even higher
+    osc2.frequency.setValueAtTime(3000, t + dur); // Constant
 
     const gain = actx.createGain();
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.2, t + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    gain.gain.setValueAtTime(0.6, t); // Higher volume
+    gain.gain.setValueAtTime(0.6, t + dur); // No fade
 
-    const filt = actx.createBiquadFilter();
-    filt.type = 'lowpass';
-    filt.frequency.value = 300;
+    // Add heavy distortion
+    const dist = actx.createWaveShaper();
+    const curve = new Float32Array(44100);
+    for (let i = 0; i < 44100; i++) {
+        curve[i] = Math.tanh((i / 44100 - 0.5) * 8); // Harder distortion
+    }
+    dist.curve = curve;
+    dist.oversample = '4x';
 
-    osc.connect(filt).connect(gain).connect(AM.masterGain || actx.destination);
-    osc.start(t);
-    lfo.start(t);
-    osc.stop(t + dur);
-    lfo.stop(t + dur);
+    osc1.connect(dist);
+    osc2.connect(dist);
+    dist.connect(gain);
+    gain.connect(AM.masterGain || actx.destination);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + dur);
+    osc2.stop(t + dur);
 }

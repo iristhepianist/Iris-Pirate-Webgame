@@ -50,11 +50,47 @@ function toScreen(wx, wy, cx, cy) { return { x: cx + wx * Chart.zoom, y: cy + wy
 
 function estimatedShipPos() {
   const seed = G.worldSeed || G.seed || 1;
-  const drift = Math.max(0, G.navError || 0);
+  let drift = Math.max(0, G.navError || 0);
+
+  // Apply celestial navigation bonuses
+  const celestialBonus = calculateCelestialAccuracy();
+  drift *= (1 - celestialBonus); // Reduce drift by celestial accuracy percentage
+
   const tick = Math.floor((((G.day || 1) * 24) + (G.hour || 0)) / 4);
   const ox = (hash01(tick, 11, seed, 401) - 0.5) * drift * 2;
   const oy = (hash01(tick, 17, seed, 402) - 0.5) * drift * 2;
-  return { x: (G.x || 0) + ox, y: (G.y || 0) + oy, drift };
+  return { x: (G.x || 0) + ox, y: (G.y || 0) + oy, drift, accuracy: celestialBonus };
+}
+
+function calculateCelestialAccuracy() {
+  if (!G.ship || !G.ship.cells) return 0;
+
+  let bestAccuracy = 0;
+  let hasTelescope = false;
+  let hasAstrolabe = false;
+
+  // Check for celestial equipment on the ship
+  for (let i = 0; i < G.ship.cells.length; i++) {
+    const cell = G.ship.cells[i];
+    if (cell && BLOCKS[cell.type]) {
+      const block = BLOCKS[cell.type];
+      if (block.func === 'celestial') {
+        if (block.id === 'telescope') hasTelescope = true;
+        if (block.id === 'astrolabe') hasAstrolabe = true;
+
+        // Use the most accurate equipment available
+        if (block.accuracy && block.accuracy > bestAccuracy) {
+          bestAccuracy = block.accuracy;
+        }
+      }
+    }
+  }
+
+  // Telescope provides the best accuracy, astrolabe is backup
+  if (hasTelescope) return 0.8; // 80% error reduction
+  if (hasAstrolabe) return 0.6; // 60% error reduction
+
+  return bestAccuracy;
 }
 
 function markerList() {
