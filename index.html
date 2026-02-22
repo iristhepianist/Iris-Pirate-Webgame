@@ -46,11 +46,61 @@
         <div>Shipwright <span id="ws-mode-text"></span></div>
         <button class="act-btn close-btn" onclick="closeWorkshop()">X</button>
       </div>
-      <div class="ws-stats" id="ws-stats"></div>
-      <div id="grid-scroll">
-        <div id="ship-grid"></div>
+
+      <!-- Workshop Navigation -->
+      <div class="ws-navigation">
+        <button class="ws-nav-btn active" data-section="stats">Stats</button>
+        <button class="ws-nav-btn" data-section="grid">Ship Grid</button>
+        <button class="ws-nav-btn" data-section="build">Build Menu</button>
       </div>
-      <div id="build-menu"></div>
+
+      <!-- Workshop Content Container -->
+      <div class="ws-content">
+        <!-- Stats Section -->
+        <div class="ws-section active" id="ws-section-stats">
+          <div class="ws-section-header">
+            <h3>Ship Statistics</h3>
+          </div>
+          <div class="ws-section-content">
+            <div class="ws-stats" id="ws-stats"></div>
+          </div>
+        </div>
+
+        <!-- Grid Section -->
+        <div class="ws-section" id="ws-section-grid">
+          <div class="ws-section-header">
+            <h3>Ship Design</h3>
+            <div class="ws-grid-controls">
+              <button class="ws-control-btn" id="ws-zoom-in">+</button>
+              <button class="ws-control-btn" id="ws-zoom-out">-</button>
+              <button class="ws-control-btn" id="ws-reset-view">Reset</button>
+            </div>
+          </div>
+          <div class="ws-section-content">
+            <div id="grid-scroll">
+              <div id="ship-grid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Build Menu Section -->
+        <div class="ws-section" id="ws-section-build">
+          <div class="ws-section-header">
+            <h3>Building Blocks</h3>
+            <div class="ws-build-filters">
+              <button class="ws-filter-btn active" data-filter="all">All</button>
+              <button class="ws-filter-btn" data-filter="hull">Hull</button>
+              <button class="ws-filter-btn" data-filter="sail">Sail</button>
+              <button class="ws-filter-btn" data-filter="crew">Crew</button>
+              <button class="ws-filter-btn" data-filter="cargo">Cargo</button>
+              <button class="ws-filter-btn" data-filter="special">Special</button>
+            </div>
+          </div>
+          <div class="ws-section-content">
+            <div id="build-menu"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Chart Overlay -->

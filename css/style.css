@@ -422,19 +422,10 @@ canvas#fx {
   text-transform: uppercase;
 }
 
-/* Workshop Grid */
-#grid-scroll {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: auto;
-  margin: 20px 0;
-}
+/* ===== WORKSHOP UI IMPROVEMENTS ===== */
 
-#ship-grid {
-  display: grid;
-  gap: 2px;
+/* Workshop Navigation */
+.ws-navigation {
 }
 
 .g-cell {

@@ -64,6 +64,107 @@ function switchToMobilePanel(panelId) {
     }
 }
 
+// Workshop navigation functions
+function initializeWorkshopNavigation() {
+    const workshopPanel = el('workshop-panel');
+    if (!workshopPanel) return;
+
+    // Navigation button handlers
+    const navButtons = workshopPanel.querySelectorAll('.ws-nav-btn');
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetSection = button.getAttribute('data-section');
+            switchWorkshopSection(targetSection);
+        });
+    });
+
+    // Build menu filter handlers
+    const filterButtons = workshopPanel.querySelectorAll('.ws-filter-btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const filter = button.getAttribute('data-filter');
+            filterBuildMenu(filter);
+        });
+    });
+
+    // Grid control handlers
+    const zoomInBtn = el('ws-zoom-in');
+    const zoomOutBtn = el('ws-zoom-out');
+    const resetViewBtn = el('ws-reset-view');
+
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', () => {
+            // TODO: Implement zoom functionality
+            console.log('Zoom in clicked');
+        });
+    }
+
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', () => {
+            // TODO: Implement zoom functionality
+            console.log('Zoom out clicked');
+        });
+    }
+
+    if (resetViewBtn) {
+        resetViewBtn.addEventListener('click', () => {
+            // TODO: Implement reset view functionality
+            console.log('Reset view clicked');
+        });
+    }
+}
+
+function switchWorkshopSection(sectionId) {
+    const workshopPanel = el('workshop-panel');
+    if (!workshopPanel) return;
+
+    // Update navigation buttons
+    const navButtons = workshopPanel.querySelectorAll('.ws-nav-btn');
+    navButtons.forEach(button => {
+        if (button.getAttribute('data-section') === sectionId) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+
+    // Update sections
+    const sections = workshopPanel.querySelectorAll('.ws-section');
+    sections.forEach(section => {
+        if (section.id === `ws-section-${sectionId}`) {
+            section.classList.add('active');
+        } else {
+            section.classList.remove('active');
+        }
+    });
+}
+
+function filterBuildMenu(filterType) {
+    const workshopPanel = el('workshop-panel');
+    if (!workshopPanel) return;
+
+    // Update filter buttons
+    const filterButtons = workshopPanel.querySelectorAll('.ws-filter-btn');
+    filterButtons.forEach(button => {
+        if (button.getAttribute('data-filter') === filterType) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+
+    // Filter build options
+    const buildOptions = workshopPanel.querySelectorAll('#build-menu .build-option');
+    buildOptions.forEach(option => {
+        const blockType = option.getAttribute('data-block-type');
+        if (filterType === 'all' || blockType === filterType) {
+            option.style.display = 'flex';
+        } else {
+            option.style.display = 'none';
+        }
+    });
+}
+
 // Initialize hallucination element pool
 function initializeHallucinationPool() {
     if (hallucinationPool.length > 0) return; // Already initialized
@@ -669,6 +770,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 
 function openWorkshop() {
     el('workshop-panel').style.display = 'flex';
+    initializeWorkshopNavigation();
     renderWorkshop();
 }
 
