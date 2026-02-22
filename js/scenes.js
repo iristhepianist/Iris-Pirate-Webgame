@@ -1,9 +1,9 @@
 const Scenes = {
-    ...window.tutorialScenes,
-    ...window.deckScenes,
-    ...window.inventoryScenes,
-    ...window.eventScenes,
-    ...window.dungeonScenes
+    ...(window.tutorialScenes || {}),
+    ...(window.deckScenes || {}),
+    ...(window.inventoryScenes || {}),
+    ...(window.eventScenes || {}),
+    ...(window.dungeonScenes || {})
 };
 
 async function setScene(id) {

@@ -153,11 +153,12 @@ These are documented gotchas that will cause bugs if ignored:
 - **Do not call `updateUI()` directly.** Use the event system in `src/events/index.js` to emit changes.
 - **G is global and has no type safety.** Never assume a property exists without checking. Use `G.x ?? default` pattern.
 - **Scenes are in one monolithic file (js/scenes.js).** Until migration is complete, all scene additions go there. Do not create orphaned scene files that nothing imports.
+- **state.js defaults are overwritten by main.js on new game.** The defaults in state.js are for documentation only; main.js clobbers G with fresh values on game start. Do not rely on state.js defaults in game logic.
 
 ## Current Migration Status
 
-- [ ] scenes.js split into sub-files
-- [ ] G object replaced with GameState class
+- [x] scenes.js split into sub-files
+- [x] G object documented in src/state.js
 - [ ] Utilities extracted to src/utils/
 - [ ] Horror feature extracted to src/features/horror/
 - [ ] Inventory feature extracted to src/features/inventory/

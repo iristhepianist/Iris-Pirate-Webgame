@@ -1,4 +1,4 @@
-// src/state.js
+// js/state.js
 // Global game state object with all properties initialized to default values
 
 window.G = {

@@ -7,6 +7,51 @@ let isTyping = false;
 let actionQueue = [];
 let keyboardNavAdded = false;
 
+// Hallucination element pool
+const HALLUCINATION_POOL_SIZE = 20;
+let hallucinationPool = [];
+let activeHallucinations = new Set();
+
+// Initialize hallucination element pool
+function initializeHallucinationPool() {
+    if (hallucinationPool.length > 0) return; // Already initialized
+
+    for (let i = 0; i < HALLUCINATION_POOL_SIZE; i++) {
+        const hallu = document.createElement('div');
+        hallu.className = 'hallucination';
+        hallu.style.position = 'fixed';
+        hallu.style.pointerEvents = 'none';
+        hallu.style.zIndex = '100001';
+        hallu.style.display = 'none'; // Start hidden
+        document.body.appendChild(hallu);
+        hallucinationPool.push(hallu);
+    }
+}
+
+// Get available hallucination element from pool
+function getHallucinationElement() {
+    for (const element of hallucinationPool) {
+        if (!activeHallucinations.has(element)) {
+            activeHallucinations.add(element);
+            return element;
+        }
+    }
+    // If all are active, reuse the oldest one
+    const oldest = hallucinationPool[0];
+    releaseHallucinationElement(oldest);
+    activeHallucinations.add(oldest);
+    return oldest;
+}
+
+// Release hallucination element back to pool
+function releaseHallucinationElement(element) {
+    activeHallucinations.delete(element);
+    element.style.display = 'none';
+    // Clear any ongoing animations
+    element.style.opacity = '1';
+    element.style.transform = '';
+}
+
 // UI logging system
 const UI_DEBUG_LEVEL = {
     NONE: 0,
@@ -384,38 +429,50 @@ function updateUI() {
 
             const createHallucination = () => {
                 if ((G.san ?? 100) >= 50) return; // No hallucinations until sanity <50
+
+                // Initialize pool if needed
+                initializeHallucinationPool();
+
                 // Spawn count scales with intensity
                 const baseCount = 3;
                 const maxCount = 8;
                 const count = Math.floor(rr() * 3) + baseCount + Math.floor(intensity * (maxCount - baseCount));
+
                 for (let i = 0; i < count; i++) {
-                    const hallu = document.createElement('div');
+                    const hallu = getHallucinationElement();
                     let text = hallucinations[Math.floor(Math.random() * hallucinations.length)];
                     text = corruptText(text);
                     hallu.innerText = text;
-                    hallu.style.position = 'fixed';
+
+                    // Reset and apply styles
+                    hallu.style.display = 'block';
                     hallu.style.top = Math.random() * 80 + '%';
                     hallu.style.left = Math.random() * 80 + '%';
+
                     // Color intensity scales
                     const redIntensity = 0.7 + intensity * 0.3;
                     hallu.style.color = `rgb(${Math.floor(redIntensity * 255)}, ${Math.floor((1 - redIntensity) * 100)}, ${Math.floor((1 - redIntensity) * 100)})`;
+
                     // Size scales with intensity
                     const baseSize = 1.5;
                     const maxSize = 3.0;
                     const fontSize = baseSize + intensity * (maxSize - baseSize);
                     hallu.style.fontSize = `${fontSize}em`;
-                    hallu.style.fontFamily = ''; // Remove creepy font
+                    hallu.style.fontFamily = '';
                     hallu.style.fontWeight = 'bold';
-                    hallu.style.textShadow = '1px 1px 2px #000'; // Subtle black shadow
-                    hallu.style.zIndex = '100001';
-                    hallu.style.pointerEvents = 'none';
-                    hallu.style.opacity = '1'; // Fully opaque
+                    hallu.style.textShadow = '1px 1px 2px #000';
+                    hallu.style.opacity = '1';
+
+                    // Reset previous styles
+                    hallu.style.fontStyle = '';
+                    hallu.style.transform = '';
+                    hallu.style.textDecoration = '';
+
                     // More creepy distortions scale with intensity
                     if (rr() < 0.5 + intensity * 0.3) hallu.style.fontStyle = 'italic';
                     const scale = 1.2 + rr() * 0.8 * intensity;
                     if (rr() < 0.4 + intensity * 0.4) hallu.style.transform = `scale(${scale}) rotate(${rr() * 20 - 10}deg)`;
                     if (rr() < 0.3 + intensity * 0.4) hallu.style.textDecoration = 'underline';
-                    document.body.appendChild(hallu);
 
                     // Fade out duration scales with intensity
                     const fadeTime = 5000 - intensity * 3000; // 5s at low, 2s at extreme
@@ -426,7 +483,7 @@ function updateUI() {
                             hallu.style.opacity = opacity;
                             if (opacity <= 0) {
                                 clearInterval(fadeOut);
-                                hallu.remove();
+                                releaseHallucinationElement(hallu);
                             }
                         }, 50);
                     }, fadeTime);
