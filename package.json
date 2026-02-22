@@ -1,0 +1,35 @@
+{
+  "name": "drowned-chart",
+  "version": "1.0.0",
+  "description": "A text-based pirate survival adventure game",
+  "main": "index.html",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:resources": "jest tests/resources.test.js",
+    "test:features": "jest tests/features.test.js",
+    "test:integration": "jest tests/integration.test.js",
+    "test:functionality": "jest tests/resources.test.js tests/features.test.js",
+    "test:comprehensive": "jest --verbose",
+    "test:report": "jest --coverage --coverageReporters=text-summary"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "collectCoverageFrom": [
+      "js/**/*.js",
+      "!js/main.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": ["text", "lcov", "html"]
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "dependencies": {
+    "puppeteer": "^24.37.5"
+  }
+}

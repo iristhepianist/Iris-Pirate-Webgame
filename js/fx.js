@@ -65,7 +65,8 @@ function loopFX() {
         }
     }
 
-    let inWs = currentScene === 'workshop';
+    const wsPanel = document.getElementById('workshop-panel');
+    let inWs = !!(wsPanel && wsPanel.style.display === 'flex');
     if (inWs) {
         targetParts = 40; type = 'ember';
         if (FX.parts.length < targetParts) {
