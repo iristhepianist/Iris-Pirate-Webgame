@@ -9,6 +9,7 @@ const path = require('path');
 loadGameFile('data.js');
 loadGameFile('engine.js');
 loadGameFile('grid.js');
+loadGameFile('chart.js');
 loadGameFile('scenes.js');
 
 describe('Game Feature Functionality', () => {
@@ -131,9 +132,10 @@ describe('Game Feature Functionality', () => {
             ship.set(4, 8, { type: 'mast', hp: BLOCKS.mast.hp });
 
             const stats = ship.getStats();
-
-            expect(stats.maxHull).toBe(BLOCKS.keel.hp + BLOCKS.plank.hp + BLOCKS.mast.hp);
-            expect(stats.curHull).toBe(BLOCKS.keel.hp + BLOCKS.plank.hp + BLOCKS.mast.hp);
+            // 1 keel + 1 mast + 3 planks (from createDefaultShip)
+            const expectedMaxHull = BLOCKS.keel.hp + BLOCKS.mast.hp + (BLOCKS.plank.hp * 3);
+            expect(stats.maxHull).toBe(expectedMaxHull);
+            expect(stats.curHull).toBe(expectedMaxHull);
             expect(stats.sailPwr).toBe(BLOCKS.mast.pwr);
         });
 

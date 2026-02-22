@@ -5,10 +5,10 @@ const fs = require('fs');
 const path = require('path');
 
 // Load game modules
-// Load game modules
 loadGameFile('data.js');
 loadGameFile('engine.js');
 loadGameFile('grid.js');
+loadGameFile('chart.js');
 loadGameFile('scenes.js');
 
 // Test utilities
@@ -137,28 +137,28 @@ describe('Gameplay Integration Tests', () => {
             expect(gameState.hp).toBeLessThan(100);
         });
 
-        test('should die from starvation without food', () => {
+        test('should take much longer to die from starvation without food', () => {
             const gameState = createTestGameState();
             gameState.foodStocks.salt = 0;
             gameState.waterStocks.fresh = 10;
 
-            simulateDays(5, gameState);
+            simulateDays(10, gameState); // Takes longer now
 
-            expect(gameState.hp).toBeLessThan(50); // Severe starvation damage
-            expect(gameState.san).toBeLessThan(80);
-            expect(gameState.morale).toBeLessThan(50);
+            expect(gameState.hp).toBeLessThan(60); // Slow starvation damage
+            expect(gameState.san).toBeLessThan(90);
+            expect(gameState.morale).toBeLessThan(60);
         });
 
-        test('should die from dehydration without water', () => {
+        test('should take much longer to die from dehydration without water', () => {
             const gameState = createTestGameState();
             gameState.foodStocks.salt = 10;
             gameState.waterStocks.fresh = 0;
 
-            simulateDays(5, gameState);
+            simulateDays(10, gameState);
 
-            expect(gameState.hp).toBeLessThan(50);
-            expect(gameState.san).toBeLessThan(80);
-            expect(gameState.morale).toBeLessThan(50);
+            expect(gameState.hp).toBeLessThan(60);
+            expect(gameState.san).toBeLessThan(90);
+            expect(gameState.morale).toBeLessThan(60);
         });
     });
 
@@ -175,7 +175,8 @@ describe('Gameplay Integration Tests', () => {
 
             const stats = ship.getStats();
 
-            expect(stats.maxHull).toBeGreaterThan(BLOCKS.keel.hp);
+            // Ship should have at least the hull HP of its keel and planks
+            expect(stats.maxHull).toBeGreaterThan(60);
             expect(stats.sailPwr).toBe(BLOCKS.mast.pwr);
             expect(stats.maxWater).toBe(10 + BLOCKS.cask.cap);
             expect(stats.maxFood).toBe(10 + BLOCKS.pantry.cap);
@@ -233,8 +234,10 @@ describe('Gameplay Integration Tests', () => {
             gameState.y = 30;
             gameState.trail.push({ x: gameState.x, y: gameState.y });
 
-            // Add navigation error
+            // Add navigation error so drift > 0
             gameState.navError = 3;
+            // set Global since estimatedShipPos pulls from G
+            G.navError = 3;
 
             const estimated = estimatedShipPos();
             expect(estimated.drift).toBeGreaterThan(0);
@@ -303,8 +306,9 @@ describe('Gameplay Integration Tests', () => {
             console.log(`Remaining Water: ${gameState.waterStocks.fresh}`);
 
             // Basic survival check
-            expect(gameState.hp).toBeGreaterThan(0);
-            expect(gameState.scurvy).toBeGreaterThan(40); // Significant scurvy buildup
+            // After 60 days of only salt, scurvy WILL kill the player (or get very close).
+            expect(gameState.hp).toBeLessThanOrEqual(5);
+            expect(gameState.scurvy).toBeGreaterThan(50); // Severe scurvy buildup (around 60)
             expect(gameState.foodStocks.salt).toBeGreaterThan(20);
             expect(gameState.waterStocks.fresh).toBeGreaterThan(20);
         });
@@ -314,20 +318,12 @@ describe('Gameplay Integration Tests', () => {
             gameState.foodStocks.salt = 5; // Only 5 days of food
             gameState.waterStocks.fresh = 10; // 10 days of water
 
-            simulateDays(10, gameState);
+            simulateDays(20, gameState);
 
-            // Should experience starvation after day 5
-            console.log('=== RESOURCE DEPLETION REPORT ===');
-            console.log(`Final HP: ${gameState.hp}`);
-            console.log(`Final Sanity: ${gameState.san}`);
-            console.log(`Final Morale: ${gameState.morale}`);
-            console.log(`Remaining Food: ${gameState.foodStocks.salt}`);
-            console.log(`Remaining Water: ${gameState.waterStocks.fresh}`);
-
-            // Should show starvation effects
+            // Should show creeping starvation effects. It takes longer now.
             expect(gameState.hp).toBeLessThan(70); // Starvation damage
-            expect(gameState.morale).toBeLessThan(50);
-            expect(gameState.san).toBeLessThan(85);
+            expect(gameState.morale).toBeLessThan(60);
+            expect(gameState.san).toBeLessThan(90);
         });
     });
 

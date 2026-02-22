@@ -171,6 +171,8 @@ function renderSidebar() {
 
             const row = document.createElement('div');
             row.className = 's-row';
+            row.title = item.label; // Tooltip for clarity
+
 
             const lbl = document.createElement('span');
             lbl.className = 's-lbl';
@@ -254,8 +256,14 @@ function updateUI() {
     if (el('v-spd')) el('v-spd').textContent = Math.round(G.spd) + 'kt';
     if (el('v-wgt')) el('v-wgt').textContent = Math.round(st.wgt) + 't';
 
-    if (el('v-food')) el('v-food').textContent = `S:${G.foodStocks.salt.toFixed(1)} F:${G.foodStocks.fresh.toFixed(1)} C:${G.foodStocks.citrus.toFixed(1)}`;
-    if (el('v-water')) el('v-water').textContent = `F:${G.waterStocks.fresh.toFixed(1)} R:${G.waterStocks.rain.toFixed(1)} D:${G.waterStocks.distilled.toFixed(1)} E:${G.waterStocks.exotic.toFixed(1)}`;
+    if (el('v-food')) {
+        el('v-food').textContent = `S:${G.foodStocks.salt.toFixed(1)} F:${G.foodStocks.fresh.toFixed(1)} C:${G.foodStocks.citrus.toFixed(1)}`;
+        el('v-food').title = "Salt Rations / Fresh Food / Citrus";
+    }
+    if (el('v-water')) {
+        el('v-water').textContent = `F:${G.waterStocks.fresh.toFixed(1)} R:${G.waterStocks.rain.toFixed(1)} D:${G.waterStocks.distilled.toFixed(1)} E:${G.waterStocks.exotic.toFixed(1)}`;
+        el('v-water').title = "Fresh Water / Rainwater / Distilled / Exotic";
+    }
 
     ['timber', 'canvas', 'rope', 'metal'].forEach(m => {
         const met = el(`v-${m}`);

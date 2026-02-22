@@ -808,41 +808,44 @@ async function advanceTime(hours, skipSceneChange = false) {
             G.waterStocks[type] = Math.max(0, G.waterStocks[type] - WATER_TYPES[type].spoilRate);
         }
 
-        // Starvation mechanics - severe penalties when completely out of food/water
+        // Starvation mechanics 
         if (foodNeeded > 0 || waterNeeded > 0) {
-            // Starvation effects are much worse than scurvy
-            G.hp = clamp(G.hp - 5, 0, 100); // Severe health loss
-            G.san = clamp(G.san - 3, 0, 100); // Mental breakdown
-            G.morale = clamp(G.morale - 3, 0, 100); // Despair
-            if (h % 6 === 0) {
+            // Apply grace period for the first 3 days (simulating initial resilience)
+            let severity = (G.day <= 3) ? 0.2 : 1.0;
+
+            // 0.5 HP per hour = 12 HP per day. Survival is possible for ~8 days.
+            G.hp = clamp(G.hp - (0.5 * severity), 0, 100);
+            G.san = clamp(G.san - (0.2 * severity), 0, 100);
+            G.morale = clamp(G.morale - (0.5 * severity), 0, 100);
+
+            if (h % 12 === 0) {
                 if (foodNeeded > 0 && waterNeeded > 0) {
-                    printLog('Starvation and dehydration wrack your body. You cannot work.', 'alert');
+                    printLog('Starvation and dehydration are setting in. You feel weak.', 'alert');
                 } else if (foodNeeded > 0) {
-                    printLog('Hunger consumes you. Your strength fails.', 'alert');
+                    printLog('Hunger gnaws at your stomach.', 'alert');
                 } else {
-                    printLog('Thirst burns through you. Your mind wanders.', 'alert');
+                    printLog('Your throat is parched. You need water.', 'alert');
                 }
             }
         }
 
-        // Scurvy effects
-        if (G.scurvy > 10) {
-            G.hp = clamp(G.hp - 1, 0, 100); // Fatigue
-            G.morale = clamp(G.morale - 1, 0, 100);
-        }
-        if (G.scurvy > 30) {
-            G.hp = clamp(G.hp - 2, 0, 100); // Wounds don't heal
-            G.san = clamp(G.san - 1, 0, 100);
+        // Scurvy effects (Slow, creeping death)
+        if (G.scurvy > 20) {
+            G.hp = clamp(G.hp - 0.1, 0, 100); // 2.4 HP / day
+            G.morale = clamp(G.morale - 0.2, 0, 100);
         }
         if (G.scurvy > 50) {
-            G.hp = clamp(G.hp - 3, 0, 100); // Gums
-            G.san = clamp(G.san - 2, 0, 100);
+            G.hp = clamp(G.hp - 0.2, 0, 100); // 4.8 HP / day cumulative
+            G.san = clamp(G.san - 0.1, 0, 100);
         }
-        if (G.scurvy > 70) {
-            // Can't stand watch
-            G.hp = clamp(G.hp - 4, 0, 100);
-            G.san = clamp(G.san - 3, 0, 100);
-            if (h % 6 === 0) printLog('The scurvy has you bedridden. You cannot work the ship.', 'alert');
+        if (G.scurvy > 75) {
+            G.hp = clamp(G.hp - 0.4, 0, 100); // 9.6 HP / day cumulative
+            G.san = clamp(G.san - 0.3, 0, 100);
+        }
+        if (G.scurvy >= 90) {
+            G.hp = clamp(G.hp - 0.8, 0, 100); // 19.2 HP / day cumulative
+            G.san = clamp(G.san - 0.5, 0, 100);
+            if (h % 12 === 0) printLog('Scurvy rots your body. You are bedridden and dying.', 'alert');
         }
 
         if (G.wx === 'Storm') G.san -= 0.5;

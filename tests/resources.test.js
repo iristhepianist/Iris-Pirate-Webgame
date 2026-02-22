@@ -221,8 +221,8 @@ describe('Resource Obtainability & Functionality', () => {
 
             // Citrus should spoil most (spoilRate 1.0)
             expect(G.foodStocks.citrus).toBeLessThan(10);
-            // Fresh should spoil moderately (spoilRate 0.5)
-            expect(G.foodStocks.fresh).toBeLessThan(G.foodStocks.citrus);
+            // Fresh should spoil moderately (spoilRate 0.5), meaning there's MORE left than citrus
+            expect(G.foodStocks.fresh).toBeGreaterThan(G.foodStocks.citrus);
             // Salt should spoil least (spoilRate 0.001)
             expect(G.foodStocks.salt).toBeGreaterThan(G.foodStocks.fresh);
         });
