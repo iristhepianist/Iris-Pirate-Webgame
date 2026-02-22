@@ -12,6 +12,58 @@ const HALLUCINATION_POOL_SIZE = 20;
 let hallucinationPool = [];
 let activeHallucinations = new Set();
 
+// Mobile navigation initialization flag
+let mobileNavInitialized = false;
+
+// Initialize mobile navigation functionality
+function initializeMobileNav() {
+    const mobileNav = el('mobile-nav');
+    if (!mobileNav) return;
+
+    // Add click handlers to navigation buttons
+    const navButtons = mobileNav.querySelectorAll('.nav-btn');
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.getAttribute('data-tab');
+
+            // Remove active class from all buttons
+            navButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Add active class to clicked button
+            button.classList.add('active');
+
+            // Switch active panel
+            switchToMobilePanel(targetTab);
+        });
+    });
+
+    // Set initial active button based on current active panel
+    const activePanel = document.querySelector('.tab-content.active-tab');
+    if (activePanel) {
+        const activeButton = mobileNav.querySelector(`[data-tab="${activePanel.id}"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+}
+
+// Switch to a specific mobile panel
+function switchToMobilePanel(panelId) {
+    // Hide all panels
+    const panels = document.querySelectorAll('.tab-content');
+    panels.forEach(panel => {
+        panel.classList.remove('active-tab');
+        panel.style.display = 'none';
+    });
+
+    // Show target panel
+    const targetPanel = el(panelId);
+    if (targetPanel) {
+        targetPanel.classList.add('active-tab');
+        targetPanel.style.display = 'flex';
+    }
+}
+
 // Initialize hallucination element pool
 function initializeHallucinationPool() {
     if (hallucinationPool.length > 0) return; // Already initialized
@@ -304,6 +356,12 @@ function updateUI() {
     if (!G.ship) {
         uiLog(UI_DEBUG_LEVEL.WARN, 'No ship object available for UI update');
         return;
+    }
+
+    // Initialize mobile navigation on first UI update
+    if (!mobileNavInitialized) {
+        initializeMobileNav();
+        mobileNavInitialized = true;
     }
 
     renderSidebar(); // Re-render to handle dynamic visibility and order

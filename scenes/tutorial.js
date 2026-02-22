@@ -13,7 +13,7 @@ const tutorialScenes = {
                     G.bilge = Math.max(0, G.bilge - 50);
                     playSplash();
                     if (G.bilge === 0) {
-                        await printLog('The deck feels stable for a moment. But a draft pulls from the hold—a jagged gap in the hull is drinking the sea.', 'sys');
+                        await printLog('The deck feels stable for a moment. But a draft pulls from the hold - a jagged gap in the hull is drinking the sea.', 'sys');
                         setScene('tutorial_workshop');
                     } else {
                         await advanceTime(1, true);

@@ -931,3 +931,285 @@ canvas#fx {
   display: inline-block;
   min-width: 140px;
 }
+
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+
+/* Mobile Navigation */
+#mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--panel-bg);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  flex-direction: row;
+}
+
+.nav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 12px;
+  font-family: Georgia, serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-right: 1px solid var(--border);
+}
+
+.nav-btn:last-child {
+  border-right: none;
+}
+
+.nav-btn.active {
+  color: var(--text-hl);
+  background: rgba(213, 193, 157, 0.1);
+}
+
+.nav-btn:hover {
+  color: var(--text-hl);
+  background: rgba(213, 193, 157, 0.05);
+}
+
+/* Mobile-only elements */
+.mobile-only {
+  display: none;
+}
+
+/* ===== MOBILE MEDIA QUERIES ===== */
+
+/* Tablet and Mobile Styles */
+@media (max-width: 768px) {
+  /* Show mobile navigation, hide desktop panels */
+  #mobile-nav {
+    display: flex;
+  }
+
+  /* Hide panels by default on mobile */
+  .tab-content {
+    display: none;
+  }
+
+  /* Show active tab */
+  .tab-content.active-tab {
+    display: flex;
+  }
+
+  /* Adjust main layout for mobile */
+  #game-container {
+    flex-direction: column;
+    height: calc(100vh - 50px); /* Account for mobile nav */
+    padding-bottom: 50px;
+  }
+
+  /* Single panel layout on mobile */
+  .panel {
+    width: 100%;
+    height: 100%;
+    padding: 16px;
+    flex: 1;
+  }
+
+  /* Mobile-specific panel adjustments */
+  #status-panel {
+    padding-top: 40px; /* Account for mobile nav overlap */
+  }
+
+  #story-panel {
+    padding-bottom: 20px;
+  }
+
+  /* Touch-friendly buttons */
+  .act-btn {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px;
+    margin: 4px 0;
+  }
+
+  .title-btn {
+    min-height: 48px;
+    padding: 16px 24px;
+    font-size: 18px;
+    margin: 8px;
+    width: calc(100% - 16px);
+    max-width: 300px;
+  }
+
+  /* Mobile-only elements become visible */
+  .mobile-only {
+    display: block;
+  }
+
+  /* Adjust overlay panels for mobile */
+  .overlay {
+    width: 95vw;
+    height: 90vh;
+    max-width: none;
+    left: 2.5vw;
+    top: 5vh;
+  }
+
+  /* Workshop mobile adjustments */
+  #ws-stats {
+    font-size: 14px;
+  }
+
+  .ws-stat {
+    padding: 6px 0;
+  }
+
+  /* Chart mobile adjustments */
+  .chart-hint {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* Journal mobile adjustments */
+  .journal-panel {
+    width: 95vw;
+    height: 90vh;
+    left: 2.5vw;
+    top: 5vh;
+  }
+
+  .journal-tab {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  /* Action buttons mobile sizing */
+  #actions .act-btn {
+    width: 100%;
+    text-align: left;
+    margin: 2px 0;
+    padding: 10px 12px;
+  }
+
+  /* Story panel mobile adjustments */
+  #story {
+    font-size: 16px;
+    line-height: 1.5;
+    padding-bottom: 60px; /* Space for mobile nav */
+  }
+
+  /* Status panel mobile layout */
+  .s-sec {
+    margin-bottom: 16px;
+  }
+
+  .s-head {
+    font-size: 11px;
+    padding: 8px 0;
+    margin-bottom: 12px;
+  }
+
+  /* Progress bars mobile sizing */
+  .progress-bar {
+    height: 12px;
+    margin: 4px 0 8px 0;
+  }
+
+  .progress-fill {
+    height: 100%;
+  }
+
+  /* Mobile nav active state adjustments */
+  #mobile-nav .nav-btn.active {
+    background: rgba(213, 193, 157, 0.15);
+  }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  .title-btn {
+    font-size: 16px;
+    padding: 14px 20px;
+  }
+
+  .act-btn {
+    font-size: 15px;
+    padding: 10px 14px;
+    min-height: 40px;
+  }
+
+  .nav-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  /* Even smaller overlays for very small screens */
+  .overlay {
+    width: 98vw;
+    height: 95vh;
+    left: 1vw;
+    top: 2vh;
+  }
+
+  .journal-panel {
+    width: 98vw;
+    height: 95vh;
+    left: 1vw;
+    top: 2vh;
+  }
+
+  /* Compact journal tabs */
+  .journal-tab {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  /* Status panel compact layout */
+  .s-head {
+    font-size: 10px;
+  }
+
+  /* Workshop compact stats */
+  #ws-stats {
+    font-size: 13px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .s-head:hover {
+    color: #3a2c18;
+  }
+
+  .act-btn:hover {
+    background: var(--red);
+  }
+
+  .nav-btn:hover {
+    color: var(--text);
+    background: none;
+  }
+
+  .journal-close-btn:hover {
+    color: var(--text);
+    background: none;
+  }
+
+  .journal-tab:hover {
+    color: var(--text);
+    background: none;
+  }
+
+  /* Ensure touch targets are properly sized */
+  button, .act-btn, .nav-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
