@@ -116,7 +116,7 @@ Minimal example for a main scene:
 | y | number | Current y position | engine.js |
 | state | string | Game state | engine.js |
 | locName | string | Location name | main.js |
-| curIsland | object | Current island | engine.js |
+| atShipyard | boolean | Whether player is at a port with shipwright's yard | main.js/engine.js |
 | calmHours | number | Hours of calm weather | engine.js |
 | ship | object | Ship grid | main.js |
 | maneuver | string | Current maneuver | engine.js |
@@ -155,12 +155,39 @@ These are documented gotchas that will cause bugs if ignored:
 - **Scenes are in one monolithic file (js/scenes.js).** Until migration is complete, all scene additions go there. Do not create orphaned scene files that nothing imports.
 - **state.js defaults are overwritten by main.js on new game.** The defaults in state.js are for documentation only; main.js clobbers G with fresh values on game start. Do not rely on state.js defaults in game logic.
 
-## Current Migration Status
+## Shipbuilding System
 
-- [x] scenes.js split into sub-files
-- [x] G object documented in src/state.js
-- [ ] Utilities extracted to src/utils/
-- [ ] Horror feature extracted to src/features/horror/
-- [ ] Inventory feature extracted to src/features/inventory/
+The shipbuilding system operates on a two-tier structure:
 
-Until a checkbox is checked, treat the old file as the source of truth.
+### Deck Maintenance (Available at Sea)
+Basic ship adjustments that can be performed at sea using materials from inventory. These are choice-based actions in the deck scene:
+
+- **Patch Hull Planking** (1 Hour): Uses timber to reduce leak rate
+- **Adjust Rigging** (1 Hour): Uses rope to improve sail efficiency  
+- **Pump Ballast** (1 Hour): Uses metal to improve ship stability
+
+Maintenance actions validate material availability, consume resources, and provide atmospheric feedback.
+
+### Port Shipwright's Yard (Advanced Modifications)
+Grid-based ship editor available only at designated port islands where `G.atShipyard` is true. Includes advanced structural blocks that cannot be placed at sea:
+
+- **Reinforced Hull**: Increases hull integrity
+- **Cannons**: Adds weapon capability and weight
+- **Cargo Holds**: Increases storage capacity
+- **Extra Masts**: Improves sail power
+- **Ballast Stones**: Improves stability
+- **Extra Bilge Pumps**: Reduces leak rate
+
+The shipyard entry point checks `G.atShipyard` flag - if false, shows atmospheric message and returns to deck.
+
+### Grid UI Enhancements
+The grid system includes read-only helper methods:
+- `calculatePlacementDiff(x, y, blockType)`: Computes stat changes for proposed placement
+- `showBlockInfo(blockType)`: Returns block details (weight, cost, effects)
+
+Block placement uses confirmation scenes that display:
+- Block information (name, description, cost, weight)
+- Proposed stat changes (hull, weight, leak rate, sail power, storage)
+- Confirm/cancel choices
+
+All modifications require material validation and provide atmospheric success/failure messages.

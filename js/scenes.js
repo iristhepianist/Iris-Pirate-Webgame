@@ -1,6 +1,7 @@
 const Scenes = {
     ...(window.tutorialScenes || {}),
     ...(window.deckScenes || {}),
+    ...(window.shipyardScenes || {}),
     ...(window.inventoryScenes || {}),
     ...(window.eventScenes || {}),
     ...(window.dungeonScenes || {})

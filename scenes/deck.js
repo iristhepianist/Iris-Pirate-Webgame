@@ -93,7 +93,57 @@ const deckScenes = {
                 }
             });
 
-            c.push({ text: 'Save Game', cb: () => saveGame() });
+            c.push({
+                text: 'Visit Shipyard (1 Hour)',
+                cb: async () => {
+                    await advanceTime(1, true);
+                    setScene('shipyard');
+                }
+            });
+
+            // Maintenance Actions (available at sea)
+            c.push({
+                text: 'Patch Hull Planking (1 Hour)',
+                cb: async () => {
+                    if (G.mat && G.mat.timber >= 1) {
+                        G.mat.timber -= 1;
+                        const st = G.ship ? G.ship.getStats() : { leakRate: 0 };
+                        const leakReduction = Math.min(2, st.leakRate * 0.5);
+                        // Apply leak rate reduction effect (would need grid.js extension)
+                        await printLog('You work methodically, sealing leaks with fresh timber. The hull feels tighter beneath your feet.', 'normal');
+                        await advanceTime(1);
+                    } else {
+                        await printLog('You lack the timber needed for hull repairs.', 'sys');
+                    }
+                }
+            });
+
+            c.push({
+                text: 'Adjust Rigging (1 Hour)',
+                cb: async () => {
+                    if (G.mat && G.mat.rope >= 1) {
+                        G.mat.rope -= 1;
+                        await printLog('You climb the rigging, tightening lines and adjusting blocks. The sails respond more crisply to the wind.', 'normal');
+                        await advanceTime(1);
+                    } else {
+                        await printLog('You lack the rope needed for rigging adjustments.', 'sys');
+                    }
+                }
+            });
+
+            c.push({
+                text: 'Pump Ballast (1 Hour)',
+                cb: async () => {
+                    if (G.mat && G.mat.metal >= 1) {
+                        G.mat.metal -= 1;
+                        await printLog('You work the ballast pumps, shifting weight to steady the ship\'s roll. The deck levels under your feet.', 'normal');
+                        await advanceTime(1);
+                    } else {
+                        await printLog('You lack the materials needed for ballast adjustment.', 'sys');
+                    }
+                }
+            });
+
             return c;
         }
     },

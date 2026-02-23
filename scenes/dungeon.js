@@ -3,7 +3,7 @@ const DUNGEON_TYPES = {
         description: 'Vines writhe like serpents around idols that weep blood. The air is thick with the stench of decay and something... alive. Whispers echo from the shadows.',
         choices: [
             {
-                text: 'Examine the idols (Risk: Trap + Curse)',
+                text: 'Examine the idols',
                 risk: () => {
                     const trap = rr() < 0.4;
                     const curse = rr() < 0.3;
@@ -29,7 +29,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Search the altar (Risk: Madness)',
+                text: 'Search the altar',
                 risk: () => {
                     if (rr() < 0.3) {
                         G.san = clamp(G.san - 15, 0, 100);
@@ -50,7 +50,7 @@ const DUNGEON_TYPES = {
         description: 'A narrow crevice leads to a vast underground chamber. Stalactites hang like daggers, and veins of ore pulse with an unnatural glow. The walls seem to breathe.',
         choices: [
             {
-                text: 'Mine the ore (Risk: Collapse + Injury)',
+                text: 'Mine the ore',
                 risk: () => {
                     const collapse = rr() < 0.3;
                     if (collapse) {
@@ -65,7 +65,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Explore deeper (Risk: Lost)',
+                text: 'Explore deeper',
                 risk: () => {
                     if (rr() < 0.4) {
                         G.san = clamp(G.san - 10, 0, 100);
@@ -86,7 +86,7 @@ const DUNGEON_TYPES = {
         description: 'The heat is oppressive as you descend into a chamber where molten rock bubbles. Forges from a forgotten age line the walls, still glowing faintly.',
         choices: [
             {
-                text: 'Approach the forge (Risk: Burn + Equipment Damage)',
+                text: 'Approach the forge',
                 risk: () => {
                     const burn = rr() < 0.4;
                     if (burn) {
@@ -102,7 +102,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Inspect the runes (Risk: Overload)',
+                text: 'Inspect the runes',
                 risk: () => {
                     if (rr() < 0.3) {
                         G.san = clamp(G.san - 12, 0, 100);
@@ -124,7 +124,7 @@ const DUNGEON_TYPES = {
         description: 'Collapsed stone walls and weathered statues surround you. Faint whispers echo through the ruins, hinting at secrets long buried.',
         choices: [
             {
-                text: 'Decipher the inscriptions (Risk: Madness + Time)',
+                text: 'Decipher the inscriptions',
                 risk: () => {
                     const madness = rr() < 0.3;
                     if (madness) {
@@ -141,7 +141,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Search for artifacts (Risk: Trap)',
+                text: 'Search for artifacts',
                 risk: () => {
                     if (rr() < 0.2) {
                         G.hp = clamp(G.hp - 8, 0, 100);
@@ -162,7 +162,7 @@ const DUNGEON_TYPES = {
         description: 'You dive into a submerged cavern accessible only at low tide. Bioluminescent algae illuminates crystal-clear water and strange, pulsating coral formations.',
         choices: [
             {
-                text: 'Harvest the coral (Risk: Toxic Reaction)',
+                text: 'Harvest the coral',
                 risk: () => {
                     const toxic = rr() < 0.35;
                     if (toxic) {
@@ -178,7 +178,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Explore the deep chamber (Risk: Pressure + Drowning)',
+                text: 'Explore the deep chamber',
                 risk: () => {
                     const pressure = rr() < 0.4;
                     if (pressure) {
@@ -201,7 +201,7 @@ const DUNGEON_TYPES = {
         description: 'Sand-choked passages lead to a tomb carved from ancient sandstone. Hieroglyphs cover the walls, and the air is dry and still, carrying the scent of millennia.',
         choices: [
             {
-                text: 'Open the sarcophagus (Risk: Mummy Curse)',
+                text: 'Open the sarcophagus',
                 risk: () => {
                     const curse = rr() < 0.45;
                     if (curse) {
@@ -219,7 +219,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Study the hieroglyphs (Risk: Time + Confusion)',
+                text: 'Study the hieroglyphs',
                 risk: () => {
                     const confusion = rr() < 0.25;
                     if (confusion) {
@@ -241,7 +241,7 @@ const DUNGEON_TYPES = {
         description: 'Towering crystal formations surround you, refracting light into rainbow patterns. The crystals hum with an otherworldly energy that makes your skin tingle.',
         choices: [
             {
-                text: 'Mine the crystals (Risk: Energy Discharge)',
+                text: 'Mine the crystals',
                 risk: () => {
                     const discharge = rr() < 0.35;
                     if (discharge) {
@@ -259,7 +259,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Meditate among the crystals (Risk: Overwhelming Visions)',
+                text: 'Meditate among the crystals',
                 risk: () => {
                     const visions = rr() < 0.3;
                     if (visions) {
@@ -293,7 +293,7 @@ const DUNGEON_TYPES = {
         description: 'Sunken ships litter the ocean floor, their masts reaching like skeletal fingers toward the surface. Barnacles and coral encrust the hulls, and schools of fish dart between the wrecks.',
         choices: [
             {
-                text: 'Salvage a nearby wreck (Risk: Structural Collapse)',
+                text: 'Salvage a nearby wreck',
                 risk: () => {
                     const collapse = rr() < 0.4;
                     if (collapse) {
@@ -311,7 +311,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Search for the captain\'s quarters (Risk: Drowning)',
+                text: 'Search for the captain\'s quarters',
                 risk: () => {
                     const drown = rr() < 0.35;
                     if (drown) {
@@ -333,7 +333,7 @@ const DUNGEON_TYPES = {
         description: 'A hidden cove shelters a pirate encampment, with makeshift huts built into the cliffs and a black flag fluttering in the breeze. The air smells of rum, gunpowder, and adventure.',
         choices: [
             {
-                text: 'Raid the supply cache (Risk: Ambush)',
+                text: 'Raid the supply cache',
                 risk: () => {
                     const ambush = rr() < 0.45;
                     if (ambush) {
@@ -350,7 +350,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Steal a map from the captain\'s tent (Risk: Guard Alert)',
+                text: 'Steal a map from the captain\'s tent',
                 risk: () => {
                     const alert = rr() < 0.3;
                     if (alert) {
@@ -373,7 +373,7 @@ const DUNGEON_TYPES = {
         description: 'You climb to the smoking summit of an active volcano. Lava bubbles in the crater below, and the ground is hot beneath your feet. Strange crystals glint in the volcanic glass.',
         choices: [
             {
-                text: 'Mine the volcanic crystals (Risk: Eruption)',
+                text: 'Mine the volcanic crystals',
                 risk: () => {
                     const eruption = rr() < 0.4;
                     if (eruption) {
@@ -391,7 +391,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Observe the lava flows (Risk: Ground Collapse)',
+                text: 'Observe the lava flows',
                 risk: () => {
                     const collapse = rr() < 0.25;
                     if (collapse) {
@@ -413,7 +413,7 @@ const DUNGEON_TYPES = {
         description: 'A frozen cavern glimmers with ice formations that refract light into rainbows. Your breath freezes in the air, and the distant sound of cracking ice echoes through the chamber.',
         choices: [
             {
-                text: 'Mine the ice formations (Risk: Cave-in)',
+                text: 'Mine the ice formations',
                 risk: () => {
                     const caveIn = rr() < 0.35;
                     if (caveIn) {
@@ -429,7 +429,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Explore the frozen depths (Risk: Hypothermia)',
+                text: 'Explore the frozen depths',
                 risk: () => {
                     const hypothermia = rr() < 0.4;
                     if (hypothermia) {
@@ -452,7 +452,7 @@ const DUNGEON_TYPES = {
         description: 'A spectral ship drifts through the mist, its tattered sails fluttering despite no wind. Phantom crew members go about their duties, and the air is thick with otherworldly chill.',
         choices: [
             {
-                text: 'Board and search the hold (Risk: Haunting)',
+                text: 'Board and search the hold',
                 risk: () => {
                     const haunting = rr() < 0.5;
                     if (haunting) {
@@ -469,7 +469,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Consult the ship\'s log (Risk: Possession)',
+                text: 'Consult the ship\'s log',
                 risk: () => {
                     const possession = rr() < 0.3;
                     if (possession) {
@@ -492,7 +492,7 @@ const DUNGEON_TYPES = {
         description: 'A vault door stands ajar, revealing piles of gold and jewels within. Pressure plates and tripwires crisscross the floor, and poison darts glint in the torchlight.',
         choices: [
             {
-                text: 'Disarm the traps and take the gold (Risk: Trigger)',
+                text: 'Disarm the traps and take the gold',
                 risk: () => {
                     const trigger = rr() < 0.4;
                     if (trigger) {
@@ -509,7 +509,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Search for hidden compartments (Risk: Hidden Trap)',
+                text: 'Search for hidden compartments',
                 risk: () => {
                     const hidden = rr() < 0.25;
                     if (hidden) {
@@ -531,7 +531,7 @@ const DUNGEON_TYPES = {
         description: 'Dust motes dance in beams of light filtering through cracks in the stone ceiling. Towering shelves of ancient tomes surround you, their pages whispering secrets of forgotten knowledge.',
         choices: [
             {
-                text: 'Read forbidden texts (Risk: Knowledge Overload)',
+                text: 'Read forbidden texts',
                 risk: () => {
                     const overload = rr() < 0.35;
                     if (overload) {
@@ -548,7 +548,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Search for practical knowledge (Risk: Time Waste)',
+                text: 'Search for practical knowledge',
                 risk: () => {
                     const waste = rr() < 0.2;
                     if (waste) {
@@ -569,7 +569,7 @@ const DUNGEON_TYPES = {
         description: 'Bones litter the ground and the air carries the stench of a predator\'s lair. Something large and dangerous has made this place its home. Growls echo from the darkness.',
         choices: [
             {
-                text: 'Fight the creature (Risk: Combat)',
+                text: 'Fight the creature',
                 risk: () => {
                     const defeat = rr() < 0.5;
                     if (defeat) {
@@ -586,7 +586,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Steal from the hoard (Risk: Alert Creature)',
+                text: 'Steal from the hoard',
                 risk: () => {
                     const alert = rr() < 0.3;
                     if (alert) {
@@ -608,7 +608,7 @@ const DUNGEON_TYPES = {
         description: 'Bubbling potions and strange apparatuses fill this hidden laboratory. Colored liquids swirl in glass vials, and the air hums with magical energy. An alchemist\'s notes are scattered across workbenches.',
         choices: [
             {
-                text: 'Experiment with potions (Risk: Explosion)',
+                text: 'Experiment with potions',
                 risk: () => {
                     const explosion = rr() < 0.4;
                     if (explosion) {
@@ -625,7 +625,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Study the alchemical notes (Risk: Confusion)',
+                text: 'Study the alchemical notes',
                 risk: () => {
                     const confusion = rr() < 0.25;
                     if (confusion) {
@@ -647,7 +647,7 @@ const DUNGEON_TYPES = {
         description: 'Hidden compartments and false walls conceal this underground smugglers\' hideout. Crates of illicit goods are stacked everywhere, and the air smells of exotic spices and contraband.',
         choices: [
             {
-                text: 'Raid the contraband crates (Risk: Traps)',
+                text: 'Raid the contraband crates',
                 risk: () => {
                     const traps = rr() < 0.35;
                     if (traps) {
@@ -664,7 +664,7 @@ const DUNGEON_TYPES = {
                 }
             },
             {
-                text: 'Search for hidden documents (Risk: Discovery)',
+                text: 'Search for hidden documents',
                 risk: () => {
                     const discovery = rr() < 0.2;
                     if (discovery) {

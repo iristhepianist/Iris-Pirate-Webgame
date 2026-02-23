@@ -176,6 +176,7 @@ class ShipGrid {
                     if (b.func === 'stay') st.stayCount++;
                     if (b.func === 'sail') st.mastCount++;
                     if (b.func === 'hull' && !cell.sealed) st.unsealed++;
+                    if (b.func === 'cargo') st.storageCapacity.hold += b.cap;
 
                     // Check for damaged blocks
                     if (cell.hp < b.hp) {
@@ -291,6 +292,48 @@ class ShipGrid {
             w: this.w,
             h: this.h,
             cells: this.cells.map(cell => cell ? { ...cell } : null)
+        };
+    }
+
+    // Read-only helper methods for shipyard UI
+    calculatePlacementDiff(x, y, blockType) {
+        if (!BLOCKS[blockType]) return null;
+
+        const currentStats = this.getStats();
+        // Create temporary copy of grid to simulate placement
+        const tempGrid = new ShipGrid(this.w, this.h);
+        tempGrid.cells = this.cells.map(cell => cell ? { ...cell } : null);
+        
+        // Simulate placement
+        tempGrid.cells[tempGrid.idx(x, y)] = { type: blockType, hp: BLOCKS[blockType].hp };
+        const newStats = tempGrid.getStats();
+
+        // Calculate differences
+        return {
+            hullChange: newStats.curHull - currentStats.curHull,
+            weightChange: newStats.wgt - currentStats.wgt,
+            sailPowerChange: newStats.sailPwr - currentStats.sailPwr,
+            leakRateChange: newStats.leakRate - currentStats.leakRate,
+            storageChange: {
+                hold: (newStats.storageCapacity.hold || 0) - (currentStats.storageCapacity.hold || 0),
+                pantry: (newStats.storageCapacity.pantry || 0) - (currentStats.storageCapacity.pantry || 0),
+                water_cask: (newStats.storageCapacity.water_cask || 0) - (currentStats.storageCapacity.water_cask || 0)
+            }
+        };
+    }
+
+    showBlockInfo(blockType) {
+        const block = BLOCKS[blockType];
+        if (!block) return null;
+
+        return {
+            name: block.name,
+            description: block.description,
+            weight: block.wgt || 0,
+            cost: block.cost || {},
+            hp: block.hp,
+            function: block.func,
+            capacity: block.cap || 0
         };
     }
 }

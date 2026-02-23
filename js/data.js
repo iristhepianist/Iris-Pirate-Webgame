@@ -212,7 +212,13 @@ const BLOCKS = {
     'rain_collector': { id: 'rain_collector', name: 'Rain Collector', ch: 'R', cl: 'b-rain-collector', hp: 20, wgt: 1, cost: { timber: 2, canvas: 1 }, func: 'rain', cap: 3, desc: 'Collects rainwater in storms (+3 Max Rainwater)' },
     'telescope': { id: 'telescope', name: 'Ship\'s Telescope', ch: 'T', cl: 'b-telescope', hp: 15, wgt: 2, cost: { timber: 3, metal: 1, glass: 1 }, func: 'celestial', accuracy: 0.8, desc: 'Improves celestial navigation accuracy' },
     'astrolabe': { id: 'astrolabe', name: 'Brass Astrolabe', ch: 'A', cl: 'b-astrolabe', hp: 10, wgt: 1, cost: { metal: 3, rope: 1 }, func: 'celestial', accuracy: 0.6, desc: 'Basic celestial measurement tool' },
-    'star_chart': { id: 'star_chart', name: 'Star Chart Table', ch: 'S', cl: 'b-star-chart', hp: 12, wgt: 1, cost: { timber: 2, canvas: 2 }, func: 'celestial', charts: 5, desc: 'Allows charting constellations for exploration' }
+    'star_chart': { id: 'star_chart', name: 'Star Chart Table', ch: 'S', cl: 'b-star-chart', hp: 12, wgt: 1, cost: { timber: 2, canvas: 2 }, func: 'celestial', charts: 5, desc: 'Allows charting constellations for exploration' },
+    'reinforced_hull': { id: 'reinforced_hull', name: 'Reinforced Hull Planking', ch: 'R', cl: 'b-reinforced-hull', hp: 35, wgt: 8, cost: { timber: 3, rope: 1, metal: 1 }, func: 'hull', desc: 'Thickened planking reinforced with metal bands, resists damage better' },
+    'cannon': { id: 'cannon', name: 'Ship Cannon', ch: 'C', cl: 'b-cannon', hp: 25, wgt: 20, cost: { timber: 2, rope: 1, metal: 4 }, func: 'weapon', desc: 'Heavy iron cannon, adds firepower but slows the ship considerably' },
+    'cargo_hold': { id: 'cargo_hold', name: 'Cargo Hold', ch: 'H', cl: 'b-cargo-hold', hp: 30, wgt: 12, cost: { timber: 4, rope: 2, metal: 1 }, func: 'cargo', cap: 80, desc: 'Expanded storage space below deck, increases cargo capacity' },
+    'extra_mast': { id: 'extra_mast', name: 'Extra Mast', ch: 'M', cl: 'b-extra-mast', hp: 25, wgt: 12, cost: { timber: 8, rope: 4, metal: 1 }, func: 'sail', pwr: 8, desc: 'Additional mast for more sail area, increases speed but adds weight' },
+    'ballast_stones': { id: 'ballast_stones', name: 'Ballast Stones', ch: 'B', cl: 'b-ballast-stones', hp: 40, wgt: 25, cost: { timber: 1, rope: 0, metal: 3 }, func: 'stability', desc: 'Heavy stones in the bilge for stability, improves trim but slows the ship' },
+    'extra_pump': { id: 'extra_pump', name: 'Extra Bilge Pump', ch: 'E', cl: 'b-extra-pump', hp: 20, wgt: 5, cost: { timber: 2, rope: 1, metal: 2 }, func: 'pump', clear: 3, desc: 'Additional pump for faster bilge clearing' }
 };
 
 const I_NAMES = ["Morrow's End", "The Grey Shelf", "Sable Isle", "Tern Rock", "Deadman's Ledge", "Cape Hollow", "Tallow Island"];

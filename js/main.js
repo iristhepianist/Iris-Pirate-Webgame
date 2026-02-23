@@ -24,6 +24,7 @@ function startGame(load) {
             x: 0, y: 0,
             state: 'Hove-to', locName: 'The Drowned Vessel',
             curIsland: null,
+            atShipyard: false,
             tutorialPhase: 'start',
             san: 100, hp: 100,
             trail: [],
